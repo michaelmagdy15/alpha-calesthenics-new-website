@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { prisma } from '../utils/prisma';
+import { db } from '../utils/firebase';
 
 /**
  * Handle new user assessment submission
@@ -17,30 +17,34 @@ export const submitAssessment = async (req: Request, res: Response): Promise<voi
     }
 
     // Verify user is actually paid
-    const user = await prisma.user.findUnique({
-      where: { id: userId }
-    });
+    const userRef = db.collection('users').doc(userId);
+    const userDoc = await userRef.get();
 
-    if (!user) {
+    if (!userDoc.exists) {
       res.status(404).json({ message: 'User not found' });
       return;
     }
 
-    if (user.status !== 'PAID') {
+    const userData = userDoc.data();
+
+    if (userData?.status !== 'PAID') {
       res.status(403).json({ message: 'Assessments can only be submitted by paid users. Please complete payment.' });
       return;
     }
 
     // Create the assessment
-    const assessment = await prisma.assessment.create({
-      data: {
-        userId,
-        height: Number(height),
-        weight: Number(weight),
-        goals,
-        driveLink
-      }
-    });
+    const assessmentRef = db.collection('assessments').doc();
+    const assessment = {
+      id: assessmentRef.id,
+      userId,
+      height: Number(height),
+      weight: Number(weight),
+      goals,
+      driveLink,
+      createdAt: new Date()
+    };
+    
+    await assessmentRef.set(assessment);
 
     res.status(201).json({ message: 'Assessment created successfully', assessment });
   } catch (error) {

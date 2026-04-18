@@ -44,7 +44,7 @@ export default function PricingTier({
   if (!tiers || tiers.length === 0) return null;
 
   return (
-    <section id="packages-section" className="py-24 px-6 bg-surface-container-lowest border-b border-white/5 relative overflow-hidden scroll-mt-24" dir={language === 'ar' ? 'rtl' : 'ltr'}>
+    <section id="packages-section" className="py-24 px-6 bg-surface-container-lowest border-b border-white/5 relative overflow-hidden scroll-mt-24">
       {/* Background decoration */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-primary/10 rounded-full blur-[120px] pointer-events-none"></div>
 

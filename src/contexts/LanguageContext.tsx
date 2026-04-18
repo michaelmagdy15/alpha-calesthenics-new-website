@@ -18,7 +18,7 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
 
   useEffect(() => {
     localStorage.setItem('alpha_language', language);
-    document.documentElement.dir = language === 'ar' ? 'rtl' : 'ltr';
+    // document.documentElement.dir is intuitively omitted so layout doesn't flip for Arabic
     document.documentElement.lang = language;
   }, [language]);
 

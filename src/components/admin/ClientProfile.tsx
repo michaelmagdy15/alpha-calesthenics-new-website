@@ -1,57 +1,106 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { 
   ArrowLeft, User as UserIcon, ShieldCheck, Mail, Send, 
   ExternalLink, BarChart3, Dumbbell, ClipboardList, Utensils,
-  MessageSquare, FolderOpen, Key, Activity
+  MessageSquare, FolderOpen, Key, Activity, Loader2, Save
 } from 'lucide-react';
-import { Client, PackageTier, ClientStatus } from '../../types/admin';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { db } from '../../firebase';
 import StatusBadge from './StatusBadge';
 import Breadcrumbs from '../Breadcrumbs';
 
-// Reusing MOCK_CLIENTS for simplicity
-const MOCK_CLIENTS: Client[] = [
-  {
-    id: '1',
-    name: 'John Doe',
-    email: 'john@example.com',
-    joinDate: '2026-03-15',
-    packageTier: 'Alpha Elite',
-    status: 'Active in App',
-    assessmentData: {
-      age: 28, height: "180cm", weight: "85kg", fitnessGoals: "Muscle Gain",
-      maxPullups: 12, maxPushups: 35, mobilityLimitations: "Tight shoulders", injuryHistory: "None"
-    },
-    deliverables: { customRoutineStatus: 'Assigned', nutritionalPlan: 'Custom Diet Plan', mobilityRoutineStatus: 'Assigned' },
-    whatsappLink: 'https://wa.me/group-link-id',
-    googleDriveLink: 'https://drive.google.com/folder-id',
-    appCredentialsSent: true
-  },
-  {
-    id: '2',
-    name: 'Sarah Smith',
-    email: 'sarah@example.com',
-    joinDate: '2026-04-01',
-    packageTier: 'Alpha Athlete',
-    status: 'Assessment Pending',
-    assessmentData: {
-      age: 25, height: "165cm", weight: "60kg", fitnessGoals: "Fat Loss & Strength",
-      maxPullups: 2, maxPushups: 15, mobilityLimitations: "Ankle mobility", injuryHistory: "ACL surgery 2023"
-    },
-    deliverables: { customRoutineStatus: 'Not Started', nutritionalPlan: 'Pending', mobilityRoutineStatus: 'Not Assigned' },
-    appCredentialsSent: false
-  }
-];
-
-const ClientProfile: React.FC = () => {
+export default function ClientProfile() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   
-  // Find client from mock data
-  const client: Client | undefined = MOCK_CLIENTS.find(c => c.id === id);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  
+  // Data state
+  const [userData, setUserData] = useState<any>(null);
+  const [assessmentData, setAssessmentData] = useState<any>(null);
+  
+  // Editable fields we save to 'assessments' locally
+  const [deliverables, setDeliverables] = useState({
+    customRoutineStatus: 'Not Started',
+    nutritionalPlan: 'Pending',
+    mobilityRoutineStatus: 'Not Assigned'
+  });
+  
+  const [links, setLinks] = useState({ whatsapp: '', drive: '' });
+  const [coachReviewed, setCoachReviewed] = useState(false);
 
-  if (!client) {
+  useEffect(() => {
+    const fetchClientData = async () => {
+      if (!id) return;
+      try {
+        const uDoc = await getDoc(doc(db, 'users', id));
+        if (uDoc.exists()) {
+          setUserData(uDoc.data());
+        }
+
+        const aDoc = await getDoc(doc(db, 'assessments', id));
+        if (aDoc.exists()) {
+          const data = aDoc.data();
+          setAssessmentData(data);
+          
+          if (data.adminData) {
+            if (data.adminData.deliverables) {
+              setDeliverables({
+                customRoutineStatus: data.adminData.deliverables.customRoutineStatus || 'Not Started',
+                nutritionalPlan: data.adminData.deliverables.nutritionalPlan || 'Pending',
+                mobilityRoutineStatus: data.adminData.deliverables.mobilityRoutineStatus || 'Not Assigned',
+              });
+            }
+            if (data.adminData.links) {
+              setLinks(data.adminData.links);
+            }
+          }
+          if (data.coachReviewed !== undefined) {
+             setCoachReviewed(data.coachReviewed);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching client details", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchClientData();
+  }, [id]);
+
+  const handleSaveAdminData = async () => {
+    if (!id) return;
+    setSaving(true);
+    try {
+      await updateDoc(doc(db, 'assessments', id), {
+        coachReviewed,
+        adminData: {
+          deliverables,
+          links
+        }
+      });
+      alert('Client updated successfully');
+    } catch (e) {
+      console.error(e);
+      alert('Error saving client data');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center text-on-surface">
+        <Loader2 className="w-8 h-8 text-primary animate-spin mb-4" />
+        <p className="font-bold text-on-surface-variant uppercase tracking-widest text-xs">Loading Profile...</p>
+      </div>
+    );
+  }
+
+  if (!userData) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center text-on-surface">
         <div className="text-center">
@@ -62,25 +111,8 @@ const ClientProfile: React.FC = () => {
     );
   }
 
-  const [deliverables, setDeliverables] = useState(client.deliverables);
-  const [links, setLinks] = useState({ whatsapp: client.whatsappLink || '', drive: client.googleDriveLink || '' });
-  const [isProvisioning, setIsProvisioning] = useState(false);
-  const [provisioned, setProvisioned] = useState(client.appCredentialsSent);
-
-  const handleLinkSave = (type: 'whatsapp' | 'drive') => {
-    // In a real app, this would hit an API
-    alert(`Saved ${type} link: ${links[type]}`);
-  };
-
-  const triggerProvisioning = () => {
-    setIsProvisioning(true);
-    // Simulate API call
-    setTimeout(() => {
-      setIsProvisioning(false);
-      setProvisioned(true);
-      alert("Success: Credentials sent to client via email and WhatsApp.");
-    }, 2000);
-  };
+  const joinDate = userData.createdAt ? new Date(userData.createdAt.seconds * 1000).toISOString().split('T')[0] : 'Unknown';
+  const status = coachReviewed ? 'Active in App' : (assessmentData ? 'Program Building' : 'Assessment Pending');
 
   return (
     <div className="bg-background text-on-surface font-body min-h-screen pt-24 px-6 pb-20">
@@ -94,13 +126,22 @@ const ClientProfile: React.FC = () => {
             <span className="text-xs font-bold uppercase tracking-widest">Back to Roster</span>
           </button>
           <div className="flex items-center gap-3">
-             <span className="text-white font-headline text-lg italic tracking-tighter">CLIENT VIEW // {client.id}</span>
+             <span className="text-white font-headline text-lg italic tracking-tighter hidden sm:block">CLIENT VIEW // {id}</span>
+             
+             <button
+              onClick={handleSaveAdminData}
+              disabled={saving}
+              className="px-4 py-2 bg-primary text-on-primary font-bold uppercase tracking-wider text-xs rounded-lg flex items-center gap-2 hover:brightness-110 disabled:opacity-50"
+             >
+                {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                Save Changes
+             </button>
           </div>
         </div>
       </nav>
 
       <main className="max-w-7xl mx-auto">
-        <Breadcrumbs items={[{ label: 'Home', path: '/' }, { label: 'Admin', path: '/admin' }, { label: client.name }]} />
+        <Breadcrumbs items={[{ label: 'Home', path: '/' }, { label: 'Admin', path: '/admin' }, { label: userData.displayName || 'Unnamed' }]} />
 
         {/* Header Header */}
         <section className="mb-8">
@@ -110,24 +151,37 @@ const ClientProfile: React.FC = () => {
             className="glass-card rounded-3xl p-8 flex flex-col md:flex-row gap-8 items-center"
           >
             <div className="w-24 h-24 rounded-full bg-primary/20 flex items-center justify-center text-4xl font-black text-primary border-4 border-white/5">
-              {client.name.charAt(0)}
+              {(userData.displayName?.charAt(0) || 'U').toUpperCase()}
             </div>
             <div className="flex-1 text-center md:text-left">
-              <h1 className="text-4xl md:text-5xl font-black font-headline uppercase italic tracking-tighter mb-2">{client.name}</h1>
+              <h1 className="text-4xl md:text-5xl font-black font-headline uppercase italic tracking-tighter mb-2">{userData.displayName || 'Unnamed'}</h1>
               <div className="flex flex-wrap justify-center md:justify-start gap-4 items-center">
                 <div className="flex items-center gap-2 text-on-surface-variant text-sm">
                   <Mail className="w-4 h-4" />
-                  {client.email}
+                  {userData.email}
                 </div>
                 <div className="flex items-center gap-2 text-on-surface-variant text-sm border-l border-white/10 pl-4 md:border-none md:pl-0">
                   <ShieldCheck className="w-4 h-4 text-primary" />
-                  Member since {client.joinDate}
+                  Member since {joinDate}
                 </div>
               </div>
             </div>
-            <div className="flex flex-col gap-3">
-              <StatusBadge type="tier" value={client.packageTier} />
-              <StatusBadge type="status" value={client.status} />
+            <div className="flex flex-col gap-3 items-end">
+              <StatusBadge type="tier" value={userData.packageTier || 'Unknown'} />
+              <StatusBadge type="status" value={status} />
+              
+              {assessmentData && (
+                <div className="flex items-center mt-2 gap-2 text-sm bg-white/5 px-3 py-1.5 rounded-lg border border-white/10">
+                  <input 
+                    type="checkbox" 
+                    id="coachReviewed"
+                    checked={coachReviewed}
+                    onChange={(e) => setCoachReviewed(e.target.checked)}
+                    className="accent-primary"
+                  />
+                  <label htmlFor="coachReviewed" className="text-white cursor-pointer select-none">Mark as Active in App</label>
+                </div>
+              )}
             </div>
           </motion.div>
         </section>
@@ -146,53 +200,65 @@ const ClientProfile: React.FC = () => {
                 <h3 className="text-lg font-black font-headline uppercase">Assessment & Biometrics</h3>
               </div>
               
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 mb-8">
-                {[
-                  { label: 'Age', value: client.assessmentData.age },
-                  { label: 'Height', value: client.assessmentData.height },
-                  { label: 'Weight', value: client.assessmentData.weight },
-                  { label: 'Goals', value: client.assessmentData.fitnessGoals },
-                ].map(stat => (
-                  <div key={stat.label}>
-                    <div className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-1">{stat.label}</div>
-                    <div className="text-sm font-bold text-white">{stat.value}</div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="space-y-6">
-                <div>
-                  <div className="flex items-center gap-2 mb-3">
-                    <Dumbbell className="w-4 h-4 text-emerald-400" />
-                    <span className="text-xs font-bold uppercase tracking-widest">Baseline Strength</span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-white/5 p-4 rounded-xl border border-white/10">
-                      <div className="text-[10px] uppercase font-bold text-on-surface-variant">Max Pull-ups</div>
-                      <div className="text-2xl font-black font-headline text-primary">{client.assessmentData.maxPullups}</div>
-                    </div>
-                    <div className="bg-white/5 p-4 rounded-xl border border-white/10">
-                      <div className="text-[10px] uppercase font-bold text-on-surface-variant">Max Push-ups</div>
-                      <div className="text-2xl font-black font-headline text-primary">{client.assessmentData.maxPushups}</div>
-                    </div>
-                  </div>
+              {!assessmentData ? (
+                <div className="p-8 text-center bg-white/5 rounded-xl border border-white/10">
+                  <p className="text-on-surface-variant text-sm italic">Assessment not yet submitted by client.</p>
                 </div>
+              ) : (
+                <>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 mb-8">
+                    {[
+                      { label: 'Age', value: assessmentData.age },
+                      { label: 'Height', value: assessmentData.height },
+                      { label: 'Weight', value: assessmentData.weight },
+                      { label: 'Goals', value: assessmentData.primaryGoal },
+                    ].map(stat => (
+                      <div key={stat.label}>
+                        <div className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-1">{stat.label}</div>
+                        <div className="text-sm font-bold text-white">{stat.value || '--'}</div>
+                      </div>
+                    ))}
+                  </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <div className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-2">Mobility & Limitations</div>
-                    <div className="bg-white/5 p-4 rounded-xl border border-white/10 text-sm text-on-surface leading-relaxed">
-                      {client.assessmentData.mobilityLimitations}
+                  <div className="space-y-6">
+                    <div>
+                      <div className="flex items-center gap-2 mb-3">
+                        <Dumbbell className="w-4 h-4 text-emerald-400" />
+                        <span className="text-xs font-bold uppercase tracking-widest">Baseline Strength</span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="bg-white/5 p-4 rounded-xl border border-white/10">
+                          <div className="text-[10px] uppercase font-bold text-on-surface-variant">Max Pull-ups</div>
+                          <div className="text-2xl font-black font-headline text-primary">{assessmentData.maxPullups || '--'}</div>
+                        </div>
+                        <div className="bg-white/5 p-4 rounded-xl border border-white/10">
+                          <div className="text-[10px] uppercase font-bold text-on-surface-variant">Max Push-ups</div>
+                          <div className="text-2xl font-black font-headline text-primary">{assessmentData.maxPushups || '--'}</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                         <div className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-2">Form Video</div>
+                         <div className="bg-white/5 p-4 rounded-xl border border-white/10 text-sm">
+                           {assessmentData.formVideoUrl ? (
+                             <a href={assessmentData.formVideoUrl} target="_blank" rel="noreferrer" className="text-primary hover:underline flex items-center gap-2">
+                               <ExternalLink className="w-4 h-4" /> Watch Video
+                             </a>
+                           ) : 'No video provided.'}
+                         </div>
+                      </div>
+                      <div>
+                        <div className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-2">Previous Training</div>
+                        <div className="bg-white/5 p-4 rounded-xl border border-white/10 text-sm text-on-surface leading-relaxed capitalize">
+                          {assessmentData.trainingHistory || 'None'}
+                        </div>
+                      </div>
                     </div>
                   </div>
-                  <div>
-                    <div className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-2">Injury History</div>
-                    <div className="bg-white/5 p-4 rounded-xl border border-white/10 text-sm text-on-surface leading-relaxed">
-                      {client.assessmentData.injuryHistory}
-                    </div>
-                  </div>
-                </div>
-              </div>
+                </>
+              )}
             </motion.section>
 
             {/* Section B: Deliverables & Program Tracking */}
@@ -208,6 +274,8 @@ const ClientProfile: React.FC = () => {
               </div>
 
               <div className="space-y-4">
+                <p className="text-xs text-on-surface-variant italic pb-2">These statuses are manually updated by you. "Not Started" / "Drafted" / "Assigned".</p>
+                
                 {/* 4-Week Custom Routine */}
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-white/5 rounded-xl border border-white/10 gap-4">
                   <div className="flex items-center gap-4">
@@ -222,7 +290,7 @@ const ClientProfile: React.FC = () => {
                   <div className="flex items-center gap-2">
                     <select 
                       value={deliverables.customRoutineStatus}
-                      onChange={(e) => setDeliverables({...deliverables, customRoutineStatus: e.target.value as any})}
+                      onChange={(e) => setDeliverables({...deliverables, customRoutineStatus: e.target.value})}
                       className="bg-background border border-white/20 rounded-lg px-3 py-1.5 text-xs font-bold outline-none focus:border-primary"
                     >
                       <option value="Not Started">Not Started</option>
@@ -245,7 +313,7 @@ const ClientProfile: React.FC = () => {
                   </div>
                   <select 
                     value={deliverables.nutritionalPlan}
-                    onChange={(e) => setDeliverables({...deliverables, nutritionalPlan: e.target.value as any})}
+                    onChange={(e) => setDeliverables({...deliverables, nutritionalPlan: e.target.value})}
                     className="bg-background border border-white/20 rounded-lg px-3 py-1.5 text-xs font-bold outline-none focus:border-primary"
                   >
                     <option value="Pending">Pending</option>
@@ -311,12 +379,11 @@ const ClientProfile: React.FC = () => {
                         onChange={(e) => setLinks({...links, whatsapp: e.target.value})}
                       />
                     </div>
-                    <button 
-                      onClick={() => handleLinkSave('whatsapp')}
-                      className="p-2 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition-colors"
-                    >
-                      <ExternalLink className="w-4 h-4" />
-                    </button>
+                    {links.whatsapp && (
+                       <a href={links.whatsapp} target="_blank" rel="noreferrer" className="p-2 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition-colors">
+                          <ExternalLink className="w-4 h-4 text-emerald-400" />
+                       </a>
+                    )}
                   </div>
                 </div>
 
@@ -333,86 +400,23 @@ const ClientProfile: React.FC = () => {
                         onChange={(e) => setLinks({...links, drive: e.target.value})}
                       />
                     </div>
-                    <button 
-                      onClick={() => handleLinkSave('drive')}
-                      className="p-2 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition-colors"
-                    >
-                      <FolderOpen className="w-4 h-4" />
-                    </button>
+                    {links.drive && (
+                      <a href={links.drive} target="_blank" rel="noreferrer" className="p-2 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition-colors">
+                        <FolderOpen className="w-4 h-4 text-emerald-400" />
+                      </a>
+                    )}
                   </div>
                 </div>
               </div>
             </motion.section>
 
-            {/* Section D: App Provisioning */}
-            <motion.section 
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.1 }}
-              className="glass-card rounded-2xl p-6 border-l-4 border-l-amber-500"
-            >
-              <div className="flex items-center gap-3 mb-6 border-b border-white/5 pb-4">
-                <ShieldCheck className="w-5 h-5 text-amber-400" />
-                <h3 className="text-lg font-black font-headline uppercase">App Access</h3>
-              </div>
-
-              <div className="bg-amber-400/5 border border-amber-400/10 p-4 rounded-xl mb-6">
-                <p className="text-xs text-amber-200/60 leading-relaxed italic">
-                  Credential generation triggers an automated email to the client with their unique username and temporary password for the Alpha Mobile training app.
-                </p>
-              </div>
-
-              {provisioned ? (
-                <div className="bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-xl flex items-center justify-between">
-                  <div className="flex items-center gap-3 text-emerald-400">
-                    <ShieldCheck className="w-5 h-5" />
-                    <span className="text-xs font-bold uppercase tracking-widest">Active In App</span>
-                  </div>
-                  <button className="text-[10px] font-bold uppercase text-on-surface-variant hover:text-white transition-colors">Resend Credentials</button>
-                </div>
-              ) : (
-                <button 
-                  onClick={triggerProvisioning}
-                  disabled={isProvisioning}
-                  className="w-full py-4 bg-primary text-on-primary font-black uppercase text-sm font-headline tracking-tighter flex items-center justify-center gap-3 hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isProvisioning ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-on-primary/30 border-t-on-primary rounded-full animate-spin"></div>
-                      Generating...
-                    </>
-                  ) : (
-                    <>
-                      <Key className="w-5 h-5" />
-                      Generate App Credentials
-                    </>
-                  )}
-                </button>
-              )}
-            </motion.section>
-
-            {/* Quick Actions Footer */}
-            <div className="grid grid-cols-1 gap-3">
-              <button className="flex items-center justify-between p-4 glass-card rounded-xl text-sm font-bold group">
-                <span className="group-hover:text-primary transition-colors">Archive Client Profile</span>
-                <ChevronRight className="w-4 h-4 text-on-surface-variant" />
-              </button>
-              <button className="flex items-center justify-between p-4 glass-card rounded-xl text-sm font-bold text-red-400 hover:bg-red-500/10 group">
-                <span>Delete Account Record</span>
-                <ChevronRight className="w-4 h-4 opacity-50" />
-              </button>
-            </div>
           </div>
         </div>
       </main>
     </div>
   );
-};
+}
 
-const ChevronRight: React.FC<{ className?: string }> = ({ className }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M9 18l6-6-6-6" />
-  </svg>
-);
+
 
 export default ClientProfile;

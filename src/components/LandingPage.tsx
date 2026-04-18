@@ -249,6 +249,14 @@ export default function LandingPage() {
             el?.scrollIntoView({ behavior: 'smooth' });
           }}
         />
+        <TransformationsSlideshow 
+          transformations={TRANSFORMATIONS} 
+          title="Witness the Transformation"
+          titleAr="شاهد التحول"
+          subtitle="Our athletes don't just train. They evolve. Explore the results of dedicated programming and elite-level discipline."
+          subtitleAr="رياضيونا لا يكتفون بالتدريب، بل يتطورون. استكشف نتائج البرامج المخصصة والانضباط العالي."
+          language={language as 'en' | 'ar'}
+        />
 
         <section id="about" className="py-24 px-6 bg-surface-container-lowest">
           <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-16">
@@ -284,7 +292,7 @@ export default function LandingPage() {
           <PricingTier 
             tiers={COACHING_TIERS.map(tier => ({
               ...tier,
-              onCtaClick: user ? () => navigate('/dashboard') : signInWithGoogle
+              onCtaClick: user ? () => navigate(`/checkout?tier=${tier.id}`) : signInWithGoogle
             }))} 
           />
         </div>
@@ -323,14 +331,6 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <TransformationsSlideshow 
-          transformations={TRANSFORMATIONS} 
-          title="Witness the Transformation"
-          titleAr="شاهد التحول"
-          subtitle="Our athletes don't just train. They evolve. Explore the results of dedicated programming and elite-level discipline."
-          subtitleAr="رياضيونا لا يكتفون بالتدريب، بل يتطورون. استكشف نتائج البرامج المخصصة والانضباط العالي."
-          language={language as 'en' | 'ar'}
-        />
 
         <section id="faq" className="py-24 px-6 max-w-4xl mx-auto">
           <div className="text-center mb-16">

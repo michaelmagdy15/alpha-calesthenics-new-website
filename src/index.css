@@ -63,10 +63,10 @@
   --color-on-tertiary-fixed-variant: #454747;
   --color-surface-container-highest: #353534;
 
-  --font-headline: "Garet Heavy", "Space Grotesk", sans-serif;
-  --font-preloader: "Plus Jakarta Sans", sans-serif;
-  --font-body: "Garet Book", "Inter", sans-serif;
-  --font-label: "Garet Book", "Inter", sans-serif;
+  --font-headline: "Garet Heavy", "Cairo", "Space Grotesk", sans-serif;
+  --font-preloader: "Plus Jakarta Sans", "Cairo", sans-serif;
+  --font-body: "Garet Book", "Cairo", "Inter", sans-serif;
+  --font-label: "Garet Book", "Cairo", "Inter", sans-serif;
 
   --line-height-body: 1.6;
 }

@@ -10,3 +10,7 @@ coverage/
 # Large Media Files
 ALPHA PROMO.mp4
 ALPHA_PROMO_compressed.mp4
+
+# API Credentials
+google-credentials.json
+firebase-adminsdk.json
