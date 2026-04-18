@@ -416,7 +416,3 @@ export default function ClientProfile() {
     </div>
   );
 }
-
-
-
-export default ClientProfile;
