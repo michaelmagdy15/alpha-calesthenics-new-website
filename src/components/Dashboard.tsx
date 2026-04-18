@@ -214,7 +214,17 @@ export default function Dashboard() {
                     <div className="w-full bg-white/10 rounded-full h-2 mb-6 overflow-hidden">
                       <div className="bg-primary h-2 rounded-full" style={{ width: '0%' }}></div>
                     </div>
-                    <button className="px-6 py-3 bg-primary text-on-primary font-bold uppercase tracking-widest rounded-xl hover:brightness-110 transition-all text-sm w-full md:w-auto">
+                    <button 
+                      onClick={() => {
+                        const appLink = assessment?.adminData?.links?.app;
+                        if (appLink) {
+                          window.open(appLink, '_blank');
+                        } else {
+                          alert('Training Hub link has not been provided yet. Please check back later.');
+                        }
+                      }}
+                      className="px-6 py-3 bg-primary text-on-primary font-bold uppercase tracking-widest rounded-xl hover:brightness-110 transition-all text-sm w-full md:w-auto"
+                    >
                       Access Training Hub
                     </button>
                   </>

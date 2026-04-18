@@ -41,13 +41,13 @@ service cloud.firestore {
     // Domain Validators
     // ===============================================================
     function isValidUser(data) {
-      return hasOnlyAllowedFields(['uid', 'email', 'displayName', 'photoURL', 'role', 'createdAt']) &&
+      return hasOnlyAllowedFields(['uid', 'email', 'displayName', 'photoURL', 'role', 'createdAt', 'packageTier', 'paymentDate', 'links', 'coachReviewed', 'mobilityRoutineStatus', 'onboardingData', 'adminData']) &&
              hasRequiredFields(['uid', 'email', 'role', 'createdAt']) &&
              data.uid is string && data.uid.size() > 0 && data.uid.size() < 100 &&
              data.email is string && isValidEmail(data.email) &&
              isValidOptionalString('displayName', 1, 100) &&
              isValidOptionalString('photoURL', 1, 1000) &&
-             data.role in ['user', 'admin'] &&
+             data.role in ['user', 'admin', 'paid_client'] &&
              data.createdAt is string;
     }
 
@@ -75,6 +75,13 @@ service cloud.firestore {
              data.updatedAt is string;
     }
 
+    function isValidAssessment(data) {
+      return hasOnlyAllowedFields(['weight', 'height', 'activityLevel', 'maxPullups', 'maxPushups', 'injuryHistory', 'primaryGoal', 'videoType', 'hasUploadedVideo', 'userId', 'userName', 'createdAt', 'status']) &&
+             hasRequiredFields(['userId', 'createdAt', 'status']) &&
+             data.userId is string &&
+             data.status in ['pending_review', 'reviewed'];
+    }
+
     // ===============================================================
     // Rules
     // ===============================================================
@@ -87,7 +94,7 @@ service cloud.firestore {
       allow update: if isAuthenticated() && 
                     isValidUser(request.resource.data) && 
                     areImmutableFieldsUnchanged(['uid', 'createdAt']) &&
-                    ((isOwner(userId) && request.resource.data.role == resource.data.role) || isAdmin());
+                    ((isOwner(userId) && (request.resource.data.role == resource.data.role || request.resource.data.role == 'paid_client')) || isAdmin());
       allow delete: if isAdmin();
     }
 
@@ -106,9 +113,23 @@ service cloud.firestore {
       allow update: if isAuthenticated() && 
                     isValidUserProgress(request.resource.data) && 
                     request.resource.data.userId == resource.data.userId &&
-                    request.resource.data.userId == request.auth.uid &&
+                     request.resource.data.userId == request.auth.uid &&
                     areImmutableFieldsUnchanged(['userId', 'programId']);
       allow delete: if isAdmin() || (isAuthenticated() && request.auth.uid == resource.data.userId);
+    }
+    
+    match /assessments/{assessmentId} {
+      allow read: if isAuthenticated() && (request.auth.uid == resource.data.userId || isAdmin());
+      allow create: if isAuthenticated() && 
+                    isValidAssessment(request.resource.data) && 
+                    request.resource.data.userId == request.auth.uid &&
+                    assessmentId == request.auth.uid;
+      allow update: if isAuthenticated() && 
+                    isValidAssessment(request.resource.data) && 
+                    request.resource.data.userId == resource.data.userId &&
+                    areImmutableFieldsUnchanged(['userId', 'createdAt']) &&
+                    (isOwner(assessmentId) || isAdmin());
+      allow delete: if isAdmin() || isOwner(assessmentId);
     }
   }
 }

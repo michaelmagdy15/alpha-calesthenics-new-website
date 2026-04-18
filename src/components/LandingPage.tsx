@@ -292,7 +292,17 @@ export default function LandingPage() {
           <PricingTier 
             tiers={COACHING_TIERS.map(tier => ({
               ...tier,
-              onCtaClick: user ? () => navigate(`/checkout?tier=${tier.id}`) : signInWithGoogle
+              onCtaClick: async () => {
+                if (user) {
+                  navigate(`/checkout?tier=${tier.id}`);
+                } else {
+                  await signInWithGoogle();
+                  const { auth } = await import('../firebase');
+                  if (auth.currentUser) {
+                    navigate(`/checkout?tier=${tier.id}`);
+                  }
+                }
+              }
             }))} 
           />
         </div>

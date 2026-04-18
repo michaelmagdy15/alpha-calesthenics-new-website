@@ -29,7 +29,7 @@ export default function ClientProfile() {
     mobilityRoutineStatus: 'Not Assigned'
   });
   
-  const [links, setLinks] = useState({ whatsapp: '', drive: '' });
+  const [links, setLinks] = useState({ whatsapp: '', drive: '', app: '' });
   const [coachReviewed, setCoachReviewed] = useState(false);
 
   useEffect(() => {
@@ -403,6 +403,27 @@ export default function ClientProfile() {
                     {links.drive && (
                       <a href={links.drive} target="_blank" rel="noreferrer" className="p-2 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition-colors">
                         <FolderOpen className="w-4 h-4 text-emerald-400" />
+                      </a>
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-2 block">Training Hub (App) Link</label>
+                  <div className="flex gap-2">
+                    <div className="relative flex-1">
+                      <ExternalLink className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
+                      <input 
+                        type="text" 
+                        placeholder="Paste link here..."
+                        className="bg-white/5 border border-white/10 rounded-lg py-2 pl-10 pr-4 text-xs focus:ring-1 focus:ring-primary focus:outline-none w-full"
+                        value={links.app}
+                        onChange={(e) => setLinks({...links, app: e.target.value})}
+                      />
+                    </div>
+                    {links.app && (
+                      <a href={links.app} target="_blank" rel="noreferrer" className="p-2 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition-colors">
+                        <ExternalLink className="w-4 h-4 text-emerald-400" />
                       </a>
                     )}
                   </div>

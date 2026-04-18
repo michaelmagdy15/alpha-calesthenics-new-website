@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../firebase';
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, setDoc } from 'firebase/firestore';
 import { ShieldCheck, CreditCard, Lock, CheckCircle2 } from 'lucide-react';
 
 export default function Checkout() {
@@ -33,11 +33,11 @@ export default function Checkout() {
       await new Promise(resolve => setTimeout(resolve, 2000));
 
       const userRef = doc(db, 'users', user.uid);
-      await updateDoc(userRef, {
+      await setDoc(userRef, {
         role: 'paid_client',
         packageTier: tierName,
         paymentDate: new Date().toISOString()
-      });
+      }, { merge: true });
 
       setIsSuccess(true);
       setTimeout(() => {
