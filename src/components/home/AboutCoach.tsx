@@ -66,7 +66,7 @@ export default function AboutCoach({ profile }: AboutCoachProps) {
           <span className="text-on-surface-variant font-bold text-sm uppercase tracking-widest mb-4 block">Meet Your Guide</span>
           <h3 className="text-4xl md:text-5xl font-black font-headline mb-8 leading-tight">
             Built from scratch. <br />
-            <span className="text-primary">Tested in reality.</span>
+            <span className="text-gradient-premium">Tested in reality.</span>
           </h3>
           
           <div className="space-y-4 mb-10">
@@ -78,7 +78,7 @@ export default function AboutCoach({ profile }: AboutCoachProps) {
           </div>
 
           <div className="bg-surface-container-low p-6 rounded-2xl border border-white/5">
-            <h4 className="text-lg font-bold mb-4 font-headline uppercase tracking-wider text-white">Credentials & Experience</h4>
+            <h4 className="text-lg font-bold mb-4 font-headline uppercase tracking-wider text-gradient-premium">Credentials & Experience</h4>
             <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {profile.credentials.map(credential => (
                 <li key={credential.id} className="flex items-start gap-3">

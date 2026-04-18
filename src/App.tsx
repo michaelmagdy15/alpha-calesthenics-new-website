@@ -8,7 +8,10 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Preloader from './components/Preloader';
 import LandingPage from './components/LandingPage';
 import Dashboard from './components/Dashboard';
+import AdminDashboard from './components/admin/AdminDashboard';
+import ClientProfile from './components/admin/ClientProfile';
 import { AuthProvider } from './contexts/AuthContext';
+import { LanguageProvider } from './contexts/LanguageContext';
 import { AnimatePresence, motion } from 'motion/react';
 
 function AppContent() {
@@ -37,6 +40,8 @@ function AppContent() {
             <Routes>
               <Route path="/" element={<LandingPage />} />
               <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/admin/client/:id" element={<ClientProfile />} />
             </Routes>
           </motion.div>
         )}
@@ -47,10 +52,12 @@ function AppContent() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <Router>
-        <AppContent />
-      </Router>
-    </AuthProvider>
+    <LanguageProvider>
+      <AuthProvider>
+        <Router>
+          <AppContent />
+        </Router>
+      </AuthProvider>
+    </LanguageProvider>
   );
 }

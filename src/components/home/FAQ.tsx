@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ChevronDown } from 'lucide-react';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 export interface FAQItem {
   id: string | number;
   question: string;
+  questionAr?: string;
   answer: string;
+  answerAr?: string;
 }
 
 export interface FAQProps {
@@ -19,6 +22,7 @@ export default function FAQ({
   subtitle = "Everything you need to know about the Alpha Calisthenics programs.",
   questions
 }: FAQProps) {
+  const { language } = useLanguage();
   const [openId, setOpenId] = useState<string | number | null>(null);
 
   const toggleQuestion = (id: string | number) => {
@@ -51,7 +55,11 @@ export default function FAQ({
                   onClick={() => toggleQuestion(item.id)}
                   className="w-full text-left px-6 py-6 flex justify-between items-center bg-transparent focus:outline-none"
                 >
-                  <span className="font-bold text-lg pr-8">{item.question}</span>
+                  <div className="flex flex-col text-left overflow-hidden">
+                    <span className="text-lg font-bold text-white leading-tight">
+                      {language === 'ar' && item.questionAr ? item.questionAr : item.question}
+                    </span>
+                  </div>
                   <motion.div
                     animate={{ rotate: isOpen ? 180 : 0 }}
                     transition={{ duration: 0.3, ease: "easeInOut" }}
@@ -70,8 +78,10 @@ export default function FAQ({
                       transition={{ duration: 0.3, ease: "easeInOut" }}
                     >
                       <div className="px-6 pb-6 pt-0 text-on-surface-variant leading-relaxed border-t border-white/5 mt-2">
-                        <div className="pt-4">
-                          {item.answer}
+                        <div className="flex flex-col text-left pt-4">
+                          <p className="text-on-surface-variant leading-relaxed">
+                            {language === 'ar' && item.answerAr ? item.answerAr : item.answer}
+                          </p>
                         </div>
                       </div>
                     </motion.div>

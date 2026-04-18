@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useLanguage } from '../contexts/LanguageContext';
+import LanguageToggle from './LanguageToggle';
 import VideoModal from './VideoModal';
 import GoogleSignInButton from './auth/GoogleSignInButton';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
-import { HeroVideo, AboutCoach, PricingTier, FAQ, TransformationsGallery, Contact } from './home';
+import { HeroVideo, AboutCoach, PricingTier, FAQ, TransformationsGallery, Contact, TransformationsSlideshow } from './home';
 
 const coachProfile = {
   name: "Coach Akram",
@@ -39,16 +41,20 @@ const COACHING_TIERS = [
   {
     id: 'alpha-athlete',
     name: 'Alpha Athlete',
-    price: 'Standard',
-    billingPeriod: 'Month',
-    description: 'Perfect for the driven individual who needs a world-class plan and focused support to execute at a high level.',
+    price: '4,500 EGP',
+    billingPeriod: '3 Months',
+    description: 'Perfect for the driven individual who needs a world-class plan and focused support. (Original: 7,000 EGP)',
     features: [
-      { text: '100% Custom Training Program', included: true },
-      { text: 'Custom Nutrition Guidelines', included: true },
-      { text: 'Ongoing Group Support', included: true },
-      { text: 'Assistant Coach Check-Ins', included: true },
-      { text: 'Monthly Progress Reviews', included: true },
-      { text: 'Premium 1-on-1 Access to Akram', included: false }
+      { text: 'Initial Strength & Mobility Assessment', textAr: 'تحديد مستوي في القوة والمرونه وتحديد هدفك', included: true },
+      { text: 'Custom 100% Training Program (Supervised by Akram)', textAr: 'تصميم برنامج تمرين مخصص (تحت اشراف كابتن أكرم)', included: true },
+      { text: 'Detailed HD Exercise Video Library', textAr: 'كل تمرين مشروح بفيديوهات شرح تفصيلي', included: true },
+      { text: 'Monthly Program Progressions', textAr: 'تغير البرنامج كل شهر بحد ادني', included: true },
+      { text: 'Custom Nutrition Guidelines (Optional)', textAr: 'ارشادات تغذية مخصصه ليك (اختياري)', included: true },
+      { text: 'Daily WhatsApp Support (Alpha Team Coach)', textAr: 'متابعة يومية مع مدرب من فريق ألفا', included: true },
+      { text: 'Weekly Performance Video Form Checks', textAr: 'مراجعة فيديوهات لادائك للتأكد من ان الاداء صحيح', included: true },
+      { text: 'Alpha Calisthenics App Access', textAr: 'وصول لمميزات تطبيق ألفا كاليستنكس', included: true },
+      { text: 'Direct 1-on-1 Support with Akram', textAr: 'متابعة مباشرة مع كابتن أكرم', included: false },
+      { text: 'Monthly Phone Consultation', textAr: 'مكالمة هاتفيه شهرياً', included: false }
     ],
     isPopular: false,
     ctaText: 'Become an Athlete'
@@ -56,15 +62,20 @@ const COACHING_TIERS = [
   {
     id: 'alpha-elite',
     name: 'Alpha Elite',
-    price: 'Premium',
-    billingPeriod: 'Month',
-    description: 'This is for the individual who wants zero guesswork, maximum accountability, and ongoing adjustments to guarantee elite-level results.',
+    price: '7,999 EGP',
+    billingPeriod: '3 Months',
+    description: 'Premium world-class coaching directly with Akram for elite results. (Original: 10,000 EGP)',
     features: [
-      { text: '100% Custom Training Program', included: true },
-      { text: 'Custom Nutrition & Macro Strategy', included: true },
-      { text: 'Premium 1-on-1 Access to Akram', included: true },
-      { text: 'Weekly Form & Technique Analysis', included: true },
-      { text: 'Dynamic Program Adjustments', included: true }
+      { text: 'Initial Strength & Mobility Assessment', textAr: 'تحديد مستوي في القوة والمرونه وتحديد هدفك', included: true },
+      { text: 'Premium Custom Training Program', textAr: 'تصميم برنامج تمرين مخصص ليك ولهدفك', included: true },
+      { text: 'Post-PT / Injury Specific Programming', textAr: 'التمرين بعد علاج طبيعي او حول الاصابات', included: true },
+      { text: 'Direct Daily 1-on-1 with Coach Akram', textAr: 'متابعة يومية مباشرةً مع كابتن أكرم', included: true },
+      { text: 'Monthly Phone Call with Akram', textAr: 'مكالمة هاتفيه مع كابتن أكرم', included: true },
+      { text: 'Detailed HD Exercise Video Library', textAr: 'كل تمرين مشروح بفيديوهات شرح تفصيلي', included: true },
+      { text: 'Monthly Program Progressions', textAr: 'تغير البرنامج كل شهر بحد ادني', included: true },
+      { text: 'Full Nutrition & Macro Strategy', textAr: 'ارشادات تغذية مخصصه ليك', included: true },
+      { text: 'Weekly Video Reviews (Direct with Akram)', textAr: 'مراجعة فيديوهات الاداء اسبوعياً', included: true },
+      { text: 'Full Alpha App Access', textAr: 'وصول كامل لكل مميزات تطبيق ألفا كاليستنكس', included: true }
     ],
     isPopular: true,
     ctaText: 'Go Elite'
@@ -73,29 +84,52 @@ const COACHING_TIERS = [
 
 const FAQS = [
   {
+    id: 1,
     question: "Do I need a full gym setup to get started?",
-    answer: "Not at all. Your programming is 100% custom-built around the equipment you actually have access to. Whether you train at a fully equipped commercial gym, a local calisthenics park, or just have a pull-up bar in your living room, I will design a plan that guarantees progress."
+    questionAr: "هل أحتاج لصالة رياضية كاملة للبدء؟",
+    answer: "Not at all. Your programming is 100% custom-built around the equipment you actually have access to. Whether you train at a fully equipped commercial gym, a local calisthenics park, or just have a pull-up bar in your living room, I will design a plan that guarantees progress.",
+    answerAr: "لا، نظام ألفا مصمم ليتكيف مع البيئة المحيطة بك. سواء كان لديك جيم كامل، أو بارات في الحديقة، أو حتى بار منزلي بسيط، سنبني برنامجك بناءً على الأدوات المتاحة لديك."
   },
   {
-    question: "How soon will I start seeing results?",
-    answer: "If you follow the plan, you’ll feel a difference in your energy and strength within the first two weeks. Visually, noticeable changes typically begin around weeks 3 to 4. We focus on sustainable, undeniable progress—not fleeting quick fixes."
+    id: 2,
+    question: "How soon can I expect to see results?",
+    questionAr: "متى يمكنني توقع رؤية النتائج؟",
+    answer: "Most athletes feel an increase in energy and neural strength within the first 2 weeks. Visual physical changes typically become noticeable in 4-6 weeks of consistent adherence to the program and nutrition blocks.",
+    answerAr: "يشعر معظم الرياضيين بزيادة في الطاقة والقوة خلال أول أسبوعين. أما التغيرات الجسدية الملحوظة فتظهر عادةً خلال ٤-٦ أسابيع من الالتزام المستمر بالبرنامج ونظام التغذية."
   },
   {
-    question: "I have a busy schedule. How much time do I need to commit?",
-    answer: "As part of your initial assessment, we figure out exactly how much time you can realistically dedicate. Even if you only have 45 minutes, three days a week, I will optimize every single minute of your training to ensure you get maximum return on your effort. No wasted time, just results."
+    id: 3,
+    question: "I have a very busy schedule. Can this work for me?",
+    questionAr: "جدولي مزدحم جداً، هل يمكن لهذا النظام أن ينجح معي؟",
+    answer: "Yes. Efficiency is a core pillar of Alpha Coaching. We optimize your training sessions to yield maximum results in minimum time. Even with 45 minutes, 3-4 times a week, we can generate significant progress.",
+    answerAr: "نعم. الكفاءة هي ركيزة أساسية في تدريب ألفا. نقوم بتحسين حصصك التدريبية لتحقيق أقصى قدر من النتائج في أقل وقت ممكن. حتى لو كان لديك ٤٥ دقيقة فقط، ٣-٤ مرات في الأسبوع، يمكننا تحقيق تقدم كبير."
   },
   {
-    question: "What if I have past injuries or joint pain?",
-    answer: "Your safety and longevity are my top priority. Every exercise is carefully selected based on your physical history. We will work to strengthen your weak links, improve your mobility, and bulletproof your joints, allowing you to train hard without the pain."
+    id: 4,
+    question: "Is it safe if I have past injuries?",
+    questionAr: "هل التدريب آمن إذا كان لدي إصابات سابقة؟",
+    answer: "Safety and joint health are priorities. We focus on 'bulletproofing' your joints and improving mobility. If you have specific past injuries, we adjust the exercise selection to ensure you progress without pain or risk.",
+    answerAr: "الأمان وصحة المفاصل من أولوياتنا. نركز على تقوية المفاصل وتحسين الحركة. إذا كان لديك إصابات سابقة، سنقوم بتعديل اختيار التمارين لضمان تقدمك بدون ألم أو خطر."
   },
   {
+    id: 5,
     question: "Will the nutrition plan force me to give up the foods I love?",
-    answer: "Absolutely not. Restrictive diets fail. I’ll teach you how to properly fuel your body for performance and aesthetics without completely eliminating your favorite foods. It’s about balance, macro-management, and building habits you can sustain for life."
-  },
-  {
-    question: "What happens if I miss a workout or mess up my diet?",
-    answer: "You’re human, and life happens. That’s exactly why you have a coach. Instead of spiraling, you’ll reach out. We’ll adjust the plan, get you back on track immediately, and keep the momentum going."
+    questionAr: "هل سيحرمني نظام التغذية من الأطعمة التي أحبها؟",
+    answer: "Absolutely not. Restrictive diets fail. I’ll teach you how to properly fuel your body for performance and aesthetics using balance and macro-management without eliminating your favorites.",
+    answerAr: "بالتأكيد لا. الحمية القاسية تفشل دائماً. سأعلمك كيف تغذي جسمك للأداء العالي والشكل المناسب باستخدام التوازن وإدارة السعرات دون حرمان."
   }
+];
+
+const TRANSFORMATIONS = [
+  { id: 1, image: "/transformations/A-.png", clientName: "Alpha Results", clientNameAr: "نتائج ألفا" },
+  { id: 2, image: "/transformations/ab.png", clientName: "Symmetry & Strength", clientNameAr: "التناسق والقوة" },
+  { id: 3, image: "/transformations/fareed.png", clientName: "Fareed's Evolution", clientNameAr: "تطور فريد" },
+  { id: 4, image: "/transformations/k.png", clientName: "Core Definition", clientNameAr: "تحديد العضلات الأساسية" },
+  { id: 5, image: "/transformations/l.png", clientName: "Athlete Build", clientNameAr: "بنية رياضية" },
+  { id: 6, image: "/transformations/o9.png", clientName: "Shredded Protocol", clientNameAr: "بروتوكول التنشيف" },
+  { id: 7, image: "/transformations/re.png", clientName: "Back Power", clientNameAr: "قوة الظهر" },
+  { id: 8, image: "/transformations/tt.png", clientName: "Total Body Recomp", clientNameAr: "إعادة تشكيل الجسم بالكامل" },
+  { id: 9, image: "/transformations/tyu.png", clientName: "Alpha Performance", clientNameAr: "أداء ألفا" },
 ];
 
 export default function LandingPage() {
@@ -105,6 +139,30 @@ export default function LandingPage() {
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
   const { user, signInWithGoogle } = useAuth();
   const navigate = useNavigate();
+  const { language } = useLanguage();
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.2
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: {
+      y: 0,
+      opacity: 1,
+      transition: {
+        duration: 0.8,
+        ease: [0.22, 1, 0.36, 1]
+      }
+    }
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -122,7 +180,8 @@ export default function LandingPage() {
     <div className="bg-background text-on-surface font-body selection:bg-primary-container selection:text-on-primary-container min-h-screen">
       <nav className="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-md border-b border-white/5">
         <div className="flex justify-between items-center w-full px-6 py-4 max-w-screen-2xl mx-auto">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
+            <LanguageToggle />
             <img alt="Alpha Calisthenics Logo" className="h-5 object-contain" src="/Alphalogowhite.png" />
             <div className="hidden sm:block h-6 w-px bg-white/10 mx-2"></div>
             <span className="hidden sm:block text-[10px] font-black uppercase tracking-[0.3em] text-on-surface-variant">Est. MMVI</span>
@@ -205,7 +264,7 @@ export default function LandingPage() {
               <div className="space-y-6 text-on-surface-variant text-lg font-light leading-relaxed">
                 <p>I don’t just hand you a generic template and hope for the best. <span className="text-white font-bold text-xl uppercase">I build athletes.</span></p>
                 <p>With years of in-the-trenches experience mastering bodyweight mechanics, strength development, and physical transformation, I know exactly what it takes to break through plateaus and build a physique that performs as incredibly as it looks.</p>
-                <p className="border-l-4 border-white pl-6 py-4 bg-white/5 italic text-white/90">"My philosophy is simple: Zero guesswork. 100% custom programming. Every rep, every set, and every macro is calculated specifically for you."</p>
+                <p className="border-l-4 border-white pl-6 py-4 bg-white/5 italic text-white/90" dir="ltr">"My philosophy is simple: Zero guesswork. 100% custom programming. Every rep, every set, and every macro is calculated specifically for you."</p>
                 <p>I am fully committed to your progression because your results are my reputation. If you are ready to put in the work, I am ready to show you exactly how far you can go.</p>
               </div>
               {user ? (
@@ -234,50 +293,92 @@ export default function LandingPage() {
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-16">
               <h2 className="text-4xl md:text-5xl font-black font-headline mb-4 uppercase tracking-tight">The Onboarding Flow</h2>
-              <p className="text-on-surface-variant uppercase text-xs tracking-[0.2em]">Three steps to starting your transformation.</p>
+              <p className="text-on-surface-variant uppercase text-xs tracking-[0.2em]">Three steps to starting your <span className="text-white">transformation</span>.</p>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+            <motion.div 
+              variants={containerVariants}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              className="grid grid-cols-1 md:grid-cols-3 gap-12"
+            >
               {[
                 { step: "01", title: "Initial Audit", desc: "Upon joining, you'll complete an intensive physical and nutritional audit. We identify your starting point and clear objectives." },
                 { step: "02", title: "System Build", desc: "Coach Akram personally builds your custom training blocks and macro-strategy. Tailored to your biology." },
                 { step: "03", title: "App Activation", desc: "Receive your private coaching app login. Your custom protocol, macros, and tracking tools will be synced and ready." }
               ].map((s, i) => (
-                <div key={i} className="relative group p-8 glass-card rounded-2xl border-white/5 hover:border-white/20 transition-colors">
-                  <div className="w-14 h-14 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center mb-8 group-hover:scale-110 transition-transform">
+                <motion.div 
+                  key={i} 
+                  variants={itemVariants}
+                  className="relative group p-8 glass-card rounded-2xl border-white/5 hover:border-white/20 transition-all duration-500"
+                >
+                  <div className="w-14 h-14 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center mb-8 group-hover:scale-110 transition-transform duration-500">
                     <span className="text-xl font-black text-white">{s.step}</span>
                   </div>
                   <h3 className="text-xl font-black uppercase tracking-tight mb-4">{s.title}</h3>
-                  <p className="text-on-surface-variant text-sm leading-relaxed font-light">{s.desc}</p>
-                </div>
+                  <p className="text-on-surface-variant text-sm leading-relaxed font-light opacity-80 group-hover:opacity-100 transition-opacity">{s.desc}</p>
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
           </div>
         </section>
+
+        <TransformationsSlideshow 
+          transformations={TRANSFORMATIONS} 
+          title="Witness the Transformation"
+          titleAr="شاهد التحول"
+          subtitle="Our athletes don't just train. They evolve. Explore the results of dedicated programming and elite-level discipline."
+          subtitleAr="رياضيونا لا يكتفون بالتدريب، بل يتطورون. استكشف نتائج البرامج المخصصة والانضباط العالي."
+          language={language as 'en' | 'ar'}
+        />
 
         <section id="faq" className="py-24 px-6 max-w-4xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-6xl font-black font-headline mb-4 uppercase tracking-tighter">Common Questions</h2>
             <p className="text-on-surface-variant uppercase text-xs tracking-[0.2em]">Everything you need to know before we start.</p>
           </div>
-          <div className="space-y-3">
+          <motion.div 
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-100px" }}
+            className="space-y-4"
+          >
             {FAQS.map((faq, index) => (
-              <div key={index} className="glass-card rounded-xl overflow-hidden border-white/5">
-                <button onClick={() => setOpenFaqIndex(openFaqIndex === index ? null : index)} className="w-full px-8 py-6 flex items-center justify-between text-left hover:bg-white/5 transition-colors">
-                  <span className="font-bold uppercase tracking-tight text-sm">{faq.question}</span>
-                  <span className={`material-symbols-outlined transition-transform duration-300 ${openFaqIndex === index ? 'rotate-180 text-primary' : ''}`}>expand_more</span>
+              <motion.div 
+                key={index} 
+                variants={itemVariants}
+                className="glass-card rounded-2xl overflow-hidden border-white/5 hover:border-white/10 transition-all"
+              >
+                <button 
+                  onClick={() => setOpenFaqIndex(openFaqIndex === index ? null : index)} 
+                  className="w-full px-8 py-7 flex items-center justify-between text-left hover:bg-white/5 transition-colors group"
+                >
+                  <span className="font-black uppercase tracking-tight text-sm opacity-90 group-hover:opacity-100 transition-opacity">
+                    {language === 'ar' ? faq.questionAr : faq.question}
+                  </span>
+                  <span className={`material-symbols-outlined transition-transform duration-500 ${openFaqIndex === index ? 'rotate-180 text-primary' : ''}`}>
+                    expand_more
+                  </span>
                 </button>
                 <AnimatePresence>
                   {openFaqIndex === index && (
-                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
-                      <div className="px-8 pb-8 text-on-surface-variant text-sm leading-relaxed border-t border-white/5 pt-5 font-light">
-                        {faq.answer}
+                    <motion.div 
+                      initial={{ height: 0, opacity: 0 }} 
+                      animate={{ height: 'auto', opacity: 1 }} 
+                      exit={{ height: 0, opacity: 0 }} 
+                      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                      className="overflow-hidden"
+                    >
+                      <div className="px-8 pb-8 text-on-surface-variant text-sm leading-relaxed border-t border-white/5 pt-6 font-light opacity-90">
+                        {language === 'ar' ? faq.answerAr : faq.answer}
                       </div>
                     </motion.div>
                   )}
                 </AnimatePresence>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </section>
 
         <section id="community" className="py-24 bg-surface-container-lowest">
@@ -287,14 +388,23 @@ export default function LandingPage() {
               <h2 className="text-4xl md:text-6xl font-black font-headline mb-8 leading-tight uppercase tracking-tight">Join a global tribe of driven athletes.</h2>
               <p className="text-on-surface-variant text-lg mb-12 font-light leading-relaxed">Connect with thousands of members, share your progress, and get expert feedback. The journey is better together.</p>
               <div className="grid grid-cols-2 gap-12 mb-12">
-                <div>
-                  <div className="text-5xl font-black font-headline text-white mb-2 mb-1 tracking-tighter">12K+</div>
-                  <div className="text-[10px] text-on-surface-variant uppercase font-black tracking-[0.3em]">Active Members</div>
-                </div>
-                <div>
-                  <div className="text-5xl font-black font-headline text-white mb-2 mb-1 tracking-tighter">890+</div>
-                  <div className="text-[10px] text-on-surface-variant uppercase font-black tracking-[0.3em]">Local Groups</div>
-                </div>
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                >
+                  <div className="text-5xl md:text-6xl font-black font-headline text-gradient-premium mb-2 tracking-tighter" dir="ltr">12K+</div>
+                  <div className="text-[10px] text-on-surface-variant uppercase font-black tracking-[0.3em] opacity-60">Active Members</div>
+                </motion.div>
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.1 }}
+                >
+                  <div className="text-5xl md:text-6xl font-black font-headline text-gradient-premium mb-2 tracking-tighter" dir="ltr">890+</div>
+                  <div className="text-[10px] text-on-surface-variant uppercase font-black tracking-[0.3em] opacity-60">Local Groups</div>
+                </motion.div>
               </div>
               <div className="space-y-4">
                 <div className="flex items-center gap-5 p-5 glass-card rounded-2xl border-white/5">
@@ -376,7 +486,7 @@ export default function LandingPage() {
         )}
       </AnimatePresence>
 
-      <VideoModal isOpen={isVideoModalOpen} onClose={() => setIsVideoModalOpen(false)} videoUrl="https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1&mute=0" />
+      <VideoModal isOpen={isVideoModalOpen} onClose={() => setIsVideoModalOpen(false)} videoUrl="" />
     </div>
   );
 }

@@ -19,7 +19,7 @@ export default function HeroVideo({
   title = "The Alpha Transformation System",
   subtitle = "Watch the breakdown of exactly how our coaching system builds elite strength and transforms physiques.",
   localVideoUrl,
-  videoUrl = "https://www.youtube.com/embed/dQw4w9WgXcQ",
+  videoUrl = "",
   ctaText = "View Training Packages",
   onCtaClick,
   isVertical = true,
@@ -89,11 +89,12 @@ export default function HeroVideo({
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
           className="text-center max-w-3xl mx-auto mb-16"
+          dir="ltr"
         >
           <span className="inline-block px-4 py-1.5 bg-white/5 border border-white/10 rounded-full text-xs font-bold tracking-[0.2em] text-primary uppercase mb-6">
             Meet Your Coach
           </span>
-          <h2 className="text-4xl md:text-7xl font-black font-headline tracking-tighter leading-[0.9] mb-8 uppercase">
+          <h2 className="text-4xl md:text-7xl font-black font-headline tracking-tighter leading-[0.9] mb-8 uppercase text-gradient-premium">
             {title}
           </h2>
           <p className="text-lg md:text-xl text-on-surface-variant font-light max-w-2xl mx-auto">
@@ -182,10 +183,11 @@ export default function HeroVideo({
         >
           <button 
             onClick={onCtaClick}
-            className="group flex items-center justify-center gap-4 px-10 sm:px-14 py-5 sm:py-6 bg-primary-container text-on-primary-container font-black text-xl sm:text-2xl rounded-2xl hover:scale-105 transition-all shadow-[0_0_50px_rgba(255,255,255,0.2)] hover:shadow-[0_0_70px_rgba(255,255,255,0.4)] uppercase tracking-wider"
+            className="group flex items-center justify-center gap-4 px-10 sm:px-14 py-5 sm:py-7 bg-primary-container text-on-primary-container font-black text-xl sm:text-2xl rounded-2xl hover:scale-105 transition-all duration-500 shadow-[0_10px_40px_rgba(0,0,0,0.4)] hover:shadow-[0_20px_60px_rgba(255,255,255,0.2)] uppercase tracking-wider overflow-hidden relative"
           >
-            {ctaText}
-            <ArrowRight className="w-7 h-7 group-hover:translate-x-2 transition-transform" />
+            <span className="relative z-10">{ctaText}</span>
+            <ArrowRight className="w-7 h-7 group-hover:translate-x-2 transition-transform relative z-10" />
+            <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 transition-opacity"></div>
           </button>
         </motion.div>
 

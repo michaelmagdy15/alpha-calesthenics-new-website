@@ -4,6 +4,9 @@ export type { HeroVideoProps } from './HeroVideo';
 export { default as TransformationsGallery } from './TransformationsGallery';
 export type { TransformationsGalleryProps, Transformation } from './TransformationsGallery';
 
+export { default as TransformationsSlideshow } from './TransformationsSlideshow';
+export type { TransformationsSlideshowProps } from './TransformationsSlideshow';
+
 export { default as AboutCoach } from './AboutCoach';
 export type { AboutCoachProps, CoachProfile, Credential } from './AboutCoach';
 
