@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { db } from '../utils/firebase';
-import { findOrCreateFolder, uploadVideoToDrive, streamVideoFromDrive } from '../services/driveService';
+import { findOrCreateFolder, uploadVideoToDrive } from '../services/driveService';
 import fs from 'fs';
 
 export const uploadAssessmentVideo = async (req: Request, res: Response): Promise<void> => {
@@ -78,26 +78,6 @@ export const uploadAssessmentVideo = async (req: Request, res: Response): Promis
   }
 };
 
-export const streamVideo = async (req: Request, res: Response): Promise<void> => {
-  try {
-    const { videoId } = req.params;
-    
-    // In a real scenario, you'd check auth token here
-    // Verify if videoId is accessible for this user
-
-    // We assume videoId is a driveFileId for simplicity or passed through our database ID
-    // Let's assume it's the actual drive file id or a valid ClientVideo/WorkoutVideo ID.
-    // For this example, if it's purely a router to stream generic valid videos, we pass videoId to stream.
-    
-    const rangeHeader = req.headers.range;
-
-    await streamVideoFromDrive(videoId, rangeHeader, res);
-
-  } catch (error) {
-    console.error("Stream Error:", error);
-    res.status(500).json({ error: 'Failed to stream video' });
-  }
-};
 
 function getFileExtension(filename: string): string {
   const i = filename.lastIndexOf('.');

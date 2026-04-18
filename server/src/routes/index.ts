@@ -2,11 +2,7 @@ import { Router } from 'express';
 import multer from 'multer';
 import fs from 'fs';
 import path from 'path';
-import { handlePaymentWebhook } from '../controllers/webhook.controller';
-import { initiateCheckout } from '../controllers/payment.controller';
-import { submitAssessment } from '../controllers/assessment.controller';
-import { getPaidClients } from '../controllers/admin.controller';
-import { uploadAssessmentVideo, streamVideo } from '../controllers/video.controller';
+import { uploadAssessmentVideo } from '../controllers/video.controller';
 
 const router = Router();
 
@@ -17,20 +13,7 @@ if (!fs.existsSync(uploadDir)) {
 }
 const upload = multer({ dest: uploadDir });
 
-// Payment Routes
-router.post('/payment/initiate', initiateCheckout);
-
-// Webhook Routes
-router.post('/webhook/payment', handlePaymentWebhook);
-
-// Assessment Routes
-router.post('/assessment', submitAssessment);
+// Video Upload Route
 router.post('/assessment/upload', upload.single('video'), uploadAssessmentVideo);
-
-// Video Routes (Natively streaming)
-router.get('/videos/:videoId', streamVideo);
-
-// Admin Routes
-router.get('/admin/clients', getPaidClients);
 
 export default router;
