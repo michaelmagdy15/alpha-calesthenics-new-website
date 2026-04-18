@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import VideoModal from './VideoModal';
+import GoogleSignInButton from './auth/GoogleSignInButton';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
 import { HeroVideo, AboutCoach, PricingTier, FAQ, TransformationsGallery, Contact } from './home';
@@ -137,9 +138,7 @@ export default function LandingPage() {
                 Dashboard
               </button>
             ) : (
-              <button onClick={signInWithGoogle} className="bg-primary-container text-on-primary-container px-6 py-2.5 rounded-lg border border-primary/20 font-black uppercase text-[10px] tracking-widest hover:shadow-[0_0_20px_rgba(255,255,255,0.15)] transition-all">
-                Join Now
-              </button>
+              <GoogleSignInButton onClick={signInWithGoogle} />
             )}
           </div>
 
@@ -170,9 +169,9 @@ export default function LandingPage() {
                   Dashboard
                 </button>
               ) : (
-                <button className="bg-primary-container text-on-primary-container px-5 py-4 rounded-xl font-black uppercase tracking-wider w-full mt-2" onClick={() => { setIsMobileMenuOpen(false); signInWithGoogle(); }}>
-                  Join Now
-                </button>
+                <div className="mt-2">
+                  <GoogleSignInButton onClick={() => { setIsMobileMenuOpen(false); signInWithGoogle(); }} className="w-full justify-center" />
+                </div>
               )}
             </div>
           </motion.div>
@@ -209,15 +208,26 @@ export default function LandingPage() {
                 <p className="border-l-4 border-white pl-6 py-4 bg-white/5 italic text-white/90">"My philosophy is simple: Zero guesswork. 100% custom programming. Every rep, every set, and every macro is calculated specifically for you."</p>
                 <p>I am fully committed to your progression because your results are my reputation. If you are ready to put in the work, I am ready to show you exactly how far you can go.</p>
               </div>
-              <button onClick={signInWithGoogle} className="mt-10 px-8 py-4 bg-white/5 border border-white/10 text-white font-bold rounded-xl hover:bg-white/10 transition-all uppercase tracking-widest text-xs">
-                Let's Work
-              </button>
+              {user ? (
+                <button onClick={() => navigate('/dashboard')} className="mt-10 px-8 py-4 bg-primary/20 border border-primary/30 text-white font-bold rounded-xl hover:bg-primary/30 transition-all uppercase tracking-widest text-xs">
+                  Review Program
+                </button>
+              ) : (
+                <button onClick={signInWithGoogle} className="mt-10 px-8 py-4 bg-white/5 border border-white/10 text-white font-bold rounded-xl hover:bg-white/10 transition-all uppercase tracking-widest text-xs">
+                  Let's Work
+                </button>
+              )}
             </div>
           </div>
         </section>
 
         <div id="packages">
-          <PricingTier tiers={COACHING_TIERS} />
+          <PricingTier 
+            tiers={COACHING_TIERS.map(tier => ({
+              ...tier,
+              onCtaClick: user ? () => navigate('/dashboard') : signInWithGoogle
+            }))} 
+          />
         </div>
 
         <section id="next-steps" className="py-24 px-6 bg-surface-container">
@@ -320,9 +330,17 @@ export default function LandingPage() {
             <h2 className="text-5xl md:text-8xl font-black font-headline mb-10 leading-[0.9] uppercase tracking-tighter">Ready to rewrite your<br/><span className="gradient-text">potential?</span></h2>
             <p className="text-on-surface-variant text-xl mb-16 max-w-2xl mx-auto font-light tracking-wide">Get unlimited access to all coaching plans, nutrition blocks, and our exclusive athlete community today.</p>
             <div className="flex flex-col sm:flex-row gap-6 justify-center items-center w-full">
-              <button onClick={user ? () => navigate('/dashboard') : signInWithGoogle} className="w-full sm:w-auto px-12 py-6 bg-primary-container text-on-primary-container font-black text-xl rounded-xl hover:scale-110 transition-all shadow-[0_0_60px_rgba(255,255,255,0.15)] uppercase tracking-[0.2em]">
-                Start Your Trial
-              </button>
+              {user ? (
+                <button onClick={() => navigate('/dashboard')} className="w-full sm:w-auto px-12 py-6 bg-primary-container text-on-primary-container font-black text-xl rounded-xl hover:scale-110 transition-all shadow-[0_0_60px_rgba(255,255,255,0.15)] uppercase tracking-[0.2em]">
+                  Go to Dashboard
+                </button>
+              ) : (
+                <GoogleSignInButton 
+                  onClick={signInWithGoogle} 
+                  text="Start Your Transformation"
+                  className="w-full sm:w-auto px-12 py-8 text-xl font-headline tracking-tight uppercase"
+                />
+              )}
               <a href="#packages" className="w-full sm:w-auto px-12 py-6 border border-white/20 text-white font-black text-xl rounded-xl hover:bg-white/10 transition-all inline-block text-center uppercase tracking-[0.2em]">
                 View Packages
               </a>
