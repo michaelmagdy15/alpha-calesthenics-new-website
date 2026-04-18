@@ -1,0 +1,141 @@
+@import "tailwindcss";
+
+@font-face {
+  font-family: 'Garet Book';
+  src: url('/fonts/GARET-BOOK.OTF') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Garet Heavy';
+  src: url('/fonts/GARET-HEAVY.TTF') format('truetype');
+  font-weight: 900;
+  font-style: normal;
+}
+
+@theme {
+  --color-on-secondary: #000000;
+  --color-on-primary-container: #000000;
+  --color-outline: #8e8e8e;
+  --color-on-primary: #000000;
+  --color-inverse-primary: #f5f5f5;
+  --color-primary: #ffffff;
+  --color-background: #0a0a0a;
+  --color-on-secondary-fixed-variant: #4b4b4b;
+  --color-on-tertiary-fixed: #1a1c1c;
+  --color-secondary: #c0c0c0;
+  --color-surface-container-low: #1c1b1b;
+  --color-tertiary-fixed: #e2e2e2;
+  --color-tertiary-fixed-dim: #c6c6c7;
+  --color-surface-bright: #393939;
+  --color-on-surface: #ffffff;
+  --color-error: #ffb4ab;
+  --color-primary-container: #e5e5e5;
+  --color-on-primary-fixed-variant: #2a2a2a;
+  --color-on-tertiary-container: #505252;
+  --color-secondary-fixed: #f5f5f5;
+  --color-surface-dim: #131313;
+  --color-secondary-fixed-dim: #c0c0c0;
+  --color-error-container: #93000a;
+  --color-on-surface-variant: #a1a1a1;
+  --color-surface-tint: #ffffff;
+  --color-surface-container-high: #2a2a2a;
+  --color-on-error: #690005;
+  --color-on-secondary-container: #1a1a1a;
+  --color-surface-container-lowest: #0e0e0e;
+  --color-surface-variant: #353534;
+  --color-on-primary-fixed: #000000;
+  --color-surface-container: #201f1f;
+  --color-outline-variant: #4b4b4b;
+  --color-tertiary: #f5f5f5;
+  --color-on-error-container: #ffdad6;
+  --color-primary-fixed: #ffffff;
+  --color-surface: #0a0a0a;
+  --color-primary-fixed-dim: #e5e5e5;
+  --color-secondary-container: #333333;
+  --color-on-tertiary: #2f3131;
+  --color-on-background: #ffffff;
+  --color-inverse-surface: #ffffff;
+  --color-on-secondary-fixed: #000000;
+  --color-inverse-on-surface: #1a1a1a;
+  --color-tertiary-container: #c4c5c5;
+  --color-on-tertiary-fixed-variant: #454747;
+  --color-surface-container-highest: #353534;
+
+  --font-headline: "Garet Heavy", "Space Grotesk", sans-serif;
+  --font-preloader: "Plus Jakarta Sans", sans-serif;
+  --font-body: "Garet Book", "Inter", sans-serif;
+  --font-label: "Garet Book", "Inter", sans-serif;
+}
+
+@layer utilities {
+  .glass-card {
+      background: rgba(28, 27, 27, 0.4);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .glass-card:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(255, 255, 255, 0.4);
+      transform: translateY(-4px);
+  }
+  .gradient-text {
+      background: linear-gradient(135deg, #ffffff 0%, #a1a1a1 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+  }
+  .hud-grid {
+      background-image: linear-gradient(#ffffff 1px, transparent 1px), linear-gradient(90deg, #ffffff 1px, transparent 1px);
+      background-size: 40px 40px;
+  }
+}
+
+@keyframes scanline {
+    0% { transform: scaleX(0); }
+    100% { transform: scaleX(1); }
+}
+@keyframes pulse-soft {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 1; }
+}
+@keyframes logo-reveal {
+    from { opacity: 0; filter: blur(10px); transform: scale(0.95); }
+    to { opacity: 1; filter: blur(0); transform: scale(1); }
+}
+@keyframes flicker {
+    0%, 100% { opacity: 0.1; }
+    20% { opacity: 0.4; }
+    40% { opacity: 0.15; }
+    60% { opacity: 0.3; }
+    80% { opacity: 0.1; }
+}
+@keyframes pull-up {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-25px); }
+}
+@keyframes bar-vibration {
+    0%, 100% { transform: scaleY(1); }
+    50% { transform: scaleY(1.05); }
+}
+
+.animate-scan {
+    transform-origin: left;
+    animation: scanline 3s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+}
+.animate-reveal {
+    animation: logo-reveal 1.5s ease-out forwards;
+}
+.animate-status {
+    animation: pulse-soft 2s infinite ease-in-out;
+}
+.animate-flicker {
+    animation: flicker 4s infinite alternate;
+}
+.animate-pullup {
+    animation: pull-up 3s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+.animate-bar {
+    animation: bar-vibration 3s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}

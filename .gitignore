@@ -1,0 +1,12 @@
+node_modules/
+build/
+dist/
+coverage/
+.DS_Store
+*.log
+.env*
+!.env.example
+
+# Large Media Files
+ALPHA PROMO.mp4
+ALPHA_PROMO_compressed.mp4

@@ -1,0 +1,23 @@
+[build]
+  # The command to run to build your site
+  command = "npm run build"
+  # The directory that contains the deploy-ready HTML files and assets
+  publish = "dist"
+
+[functions]
+  # Directory where your Netlify Functions are located
+  directory = "netlify/functions"
+  # The runtime to use for your functions
+  node_bundler = "esbuild"
+
+# SPA Redirect: All requests are handled by index.html for client-side routing
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[context.production.environment]
+  # Production specific environment variables can go here
+  # Note: Variables set here are visible in the repository.
+  # Use the Netlify UI for sensitive secrets.
+  VITE_APP_ENV = "production"

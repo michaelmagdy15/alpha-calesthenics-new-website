@@ -1,0 +1,62 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "A user profile in the application.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Firebase Auth UID" },
+        "email": { "type": "string", "format": "email" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "role": { "type": "string", "enum": ["user", "admin"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "role", "createdAt"]
+    },
+    "Program": {
+      "title": "Program",
+      "description": "A calisthenics training program.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "duration": { "type": "string" },
+        "result": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "level": { "type": "string" },
+        "isPopular": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "description", "duration", "result", "imageUrl", "level", "isPopular", "createdAt"]
+    },
+    "UserProgress": {
+      "title": "UserProgress",
+      "description": "Tracks a user's progress in a specific program.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "programId": { "type": "string" },
+        "completedWorkouts": { "type": "number" },
+        "totalWorkouts": { "type": "number" },
+        "pullupsToday": { "type": "number" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "programId", "completedWorkouts", "totalWorkouts", "pullupsToday", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "Stores user profiles."
+    },
+    "/programs/{programId}": {
+      "schema": { "$ref": "#/entities/Program" },
+      "description": "Stores available training programs."
+    },
+    "/userProgress/{progressId}": {
+      "schema": { "$ref": "#/entities/UserProgress" },
+      "description": "Stores user progress for programs."
+    }
+  }
+}
