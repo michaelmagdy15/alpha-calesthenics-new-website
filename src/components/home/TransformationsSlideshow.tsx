@@ -8,7 +8,7 @@ interface Transformation {
   clientNameAr?: string;
 }
 
-interface TransformationsSlideshowProps {
+export interface TransformationsSlideshowProps {
   transformations: Transformation[];
   autoPlayInterval?: number;
   title: string;

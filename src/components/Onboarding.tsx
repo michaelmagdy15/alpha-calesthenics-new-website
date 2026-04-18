@@ -63,7 +63,7 @@ export default function Onboarding() {
 
         try {
           // You might need to update this URL to your actual backend server depending on environment
-          const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+          const backendUrl = (import.meta as any).env?.VITE_BACKEND_URL || 'http://localhost:5000';
           await fetch(`${backendUrl}/api/assessment/upload`, {
             method: 'POST',
             body: uploadData,
