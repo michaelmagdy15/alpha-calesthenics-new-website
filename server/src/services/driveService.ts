@@ -4,13 +4,18 @@ import { Response } from 'express';
 import dotenv from 'dotenv';
 dotenv.config();
 
-// Initialize the Google Drive API client using a Service Account
-// We assume GOOGLE_APPLICATION_CREDENTIALS points to the path of the JSON key file
-// Or, alternative setup can use GOOGLE_CLIENT_EMAIL and GOOGLE_PRIVATE_KEY
-const auth = new google.auth.GoogleAuth({
+let authOptions: any = {
   scopes: ['https://www.googleapis.com/auth/drive'],
-  // It handles local file path to the service account JSON automatically if GOOGLE_APPLICATION_CREDENTIALS is set
-});
+};
+
+if (process.env.GOOGLE_CREDENTIALS_JSON) {
+  console.log("Loading Google Drive credentials from GOOGLE_CREDENTIALS_JSON env variable");
+  authOptions.credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS_JSON);
+} else {
+  console.log("Loading Google Drive credentials from local file defaults");
+}
+
+const auth = new google.auth.GoogleAuth(authOptions);
 
 const drive = google.drive({ version: 'v3', auth });
 
