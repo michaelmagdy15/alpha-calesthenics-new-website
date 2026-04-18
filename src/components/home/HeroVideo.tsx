@@ -26,7 +26,7 @@ export default function HeroVideo({
   poster
 }: HeroVideoProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [isMuted, setIsMuted] = React.useState(false);
+  const [isMuted, setIsMuted] = React.useState(true);
 
   useEffect(() => {
     const unmute = (e: Event) => {
@@ -49,20 +49,6 @@ export default function HeroVideo({
     window.addEventListener('click', unmute);
     window.addEventListener('touchstart', unmute);
     window.addEventListener('keydown', unmute);
-
-    if (videoRef.current) {
-      // First attempt: try to play unmuted
-      videoRef.current.muted = false;
-      videoRef.current.play().catch(error => {
-        console.log("Unmuted autoplay prevented by browser policy, waiting for interaction:", error);
-        // Fallback: If unmuted autoplay fails, try muted autoplay
-        if (videoRef.current) {
-          videoRef.current.muted = true;
-          setIsMuted(true);
-          videoRef.current.play().catch(e => console.error("Muted autoplay also failed:", e));
-        }
-      });
-    }
 
     return cleanup;
   }, []);
@@ -133,6 +119,7 @@ export default function HeroVideo({
                   className="w-full h-full object-cover"
                   autoPlay
                   loop
+                  muted={isMuted}
                   playsInline
                   poster={poster}
                 />

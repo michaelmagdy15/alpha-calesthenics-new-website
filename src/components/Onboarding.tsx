@@ -54,7 +54,6 @@ export default function Onboarding() {
     setIsSubmitting(true);
 
     try {
-      // If a video file is attached, upload it to the newly created backend endpoint
       if (formData.videoFile) {
         const uploadData = new FormData();
         uploadData.append('video', formData.videoFile);
@@ -62,22 +61,19 @@ export default function Onboarding() {
         uploadData.append('videoType', formData.videoType);
 
         try {
-          // You might need to update this URL to your actual backend server depending on environment
-          const backendUrl = (import.meta as any).env?.VITE_BACKEND_URL || 'http://localhost:5000';
+          const backendUrl = (import.meta as any).env?.VITE_BACKEND_URL || 'http://localhost:4000';
           await fetch(`${backendUrl}/api/assessment/upload`, {
             method: 'POST',
             body: uploadData,
           });
         } catch (uploadError) {
           console.error("Video upload failed:", uploadError);
-          // depending on strictness, you could alert and return here
         }
       }
 
-      // Save the textual data to firebase
-      // Alternatively you can shift this to your /api/assessment postgres backend later
       const assessmentRef = doc(db, 'assessments', user.uid);
-      await setDoc(assessmentRef, {
+      
+      const assessmentData = {
         weight: formData.weight,
         height: formData.height,
         activityLevel: formData.activityLevel,
@@ -88,10 +84,21 @@ export default function Onboarding() {
         videoType: formData.videoType,
         hasUploadedVideo: !!formData.videoFile,
         userId: user.uid,
-        userName: user.displayName,
-        createdAt: new Date().toISOString(),
+        userName: user.displayName || 'Athlete',
         status: 'pending_review'
-      });
+      };
+
+      try {
+        await setDoc(assessmentRef, {
+          ...assessmentData,
+          createdAt: new Date().toISOString()
+        });
+      } catch (e: any) {
+        console.warn("Possible pre-existing document, using update strategy", e);
+        // Fallback for pre-existing docs to avoid changing createdAt (which causes permission denied)
+        const { updateDoc } = await import('firebase/firestore');
+        await updateDoc(assessmentRef, assessmentData);
+      }
 
       setCurrentStep('complete');
       setTimeout(() => {
