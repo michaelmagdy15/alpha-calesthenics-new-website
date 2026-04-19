@@ -79,6 +79,14 @@ export default function Dashboard() {
           </div>
           <div className="flex items-center gap-4">
             <span className="text-sm font-medium text-on-surface-variant hidden sm:block">Welcome, {user.displayName || 'Athlete'}</span>
+            {isAdmin && (
+              <button 
+                onClick={() => navigate('/admin')} 
+                className="px-4 py-1.5 bg-primary/10 text-primary border border-primary/20 rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-primary/20 transition-all"
+              >
+                Admin Panel
+              </button>
+            )}
             {user.photoURL && <img src={user.photoURL} alt="Profile" className="w-8 h-8 rounded-full border border-white/20" />}
             <button onClick={logout} className="text-sm font-semibold hover:text-primary transition-colors">Log Out</button>
           </div>

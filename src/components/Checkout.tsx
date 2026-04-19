@@ -24,30 +24,39 @@ export default function Checkout() {
     }
   }, [user, navigate]);
 
-  const handleMockPayment = async () => {
+  const handlePayment = async () => {
     if (!user) return;
     setIsProcessing(true);
 
     try {
-      // Simulate network request
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      const token = await user.getIdToken();
+      const amountValue = tierId === 'alpha-elite' ? 7999 : 4500;
 
-      const userRef = doc(db, 'users', user.uid);
-      await setDoc(userRef, {
-        role: 'paid_client',
-        packageTier: tierName,
-        paymentDate: new Date().toISOString()
-      }, { merge: true });
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/payment/initiate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          packageTier: tierName,
+          amount: amountValue
+        })
+      });
 
-      setIsSuccess(true);
-      setTimeout(() => {
-        navigate('/onboarding');
-      }, 1500);
+      if (!response.ok) {
+        throw new Error('Failed to initiate payment');
+      }
+
+      const { iframeUrl } = await response.json();
+      
+      // Redirect to Paymob Iframe
+      window.location.href = iframeUrl;
 
     } catch (error) {
-      console.error("Error processing payment:", error);
+      console.error("Error initiating payment:", error);
       setIsProcessing(false);
-      alert("Payment simulation failed.");
+      alert("Something went wrong while initiating payment. Please try again.");
     }
   };
 
@@ -100,20 +109,14 @@ export default function Checkout() {
                   </div>
                   <div className="flex-1">
                     <div className="text-sm font-bold">PayMob Secure Gateway</div>
-                    <div className="text-[10px] text-on-surface-variant">Test Mode Enabled</div>
+                    <div className="text-[10px] text-on-surface-variant">Redirecting to Payment Portal</div>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 mb-6">
-                <p className="text-xs text-amber-200/80 leading-relaxed italic flex items-start gap-2">
-                  <ShieldCheck className="w-4 h-4 shrink-0 mt-0.5" />
-                  This is a mock checkout page to simulate a PayMob flow. Clicking the button below will immediately grant access to the requested package.
-                </p>
-              </div>
 
               <button 
-                onClick={handleMockPayment}
+                onClick={handlePayment}
                 disabled={isProcessing}
                 className="w-full py-4 rounded-xl font-black uppercase tracking-widest bg-primary text-on-primary hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
               >

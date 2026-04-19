@@ -8,6 +8,7 @@
     "build": "tsc",
     "postinstall": "npm run build",
     "start": "node dist/server.js",
+    "set-admin": "ts-node scripts/setAdminClaim.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

@@ -11,9 +11,7 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.uid == userId;
     }
     function isAdmin() {
-      return isAuthenticated() &&
-        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
-          (request.auth.token.email == "michaelmitry13@gmail.com" && request.auth.token.email_verified == true));
+      return isAuthenticated() && request.auth.token.admin == true;
     }
     function hasOnlyAllowedFields(fields) {
       return request.resource.data.keys().hasOnly(fields);
@@ -76,7 +74,7 @@ service cloud.firestore {
     }
 
     function isValidAssessment(data) {
-      return hasOnlyAllowedFields(['weight', 'height', 'activityLevel', 'maxPullups', 'maxPushups', 'injuryHistory', 'primaryGoal', 'videoType', 'hasUploadedVideo', 'userId', 'userName', 'createdAt', 'status']) &&
+      return hasOnlyAllowedFields(['weight', 'height', 'activityLevel', 'maxPullups', 'maxPushups', 'injuryHistory', 'primaryGoal', 'videoType', 'hasUploadedVideo', 'userId', 'userName', 'createdAt', 'status', 'coachReviewed', 'adminData', 'formVideoUrl', 'age', 'trainingHistory']) &&
              hasRequiredFields(['userId', 'createdAt', 'status']) &&
              data.userId is string &&
              data.status in ['pending_review', 'reviewed'];
@@ -91,10 +89,10 @@ service cloud.firestore {
                     isValidUser(request.resource.data) && 
                     request.resource.data.uid == userId &&
                     ((isOwner(userId) && request.resource.data.role == 'user') || isAdmin());
-      allow update: if isAuthenticated() && 
-                    isValidUser(request.resource.data) && 
+      allow update: if isAuthenticated() &&
+                    isValidUser(request.resource.data) &&
                     areImmutableFieldsUnchanged(['uid', 'createdAt']) &&
-                    ((isOwner(userId) && (request.resource.data.role == resource.data.role || request.resource.data.role == 'paid_client')) || isAdmin());
+                    ((isOwner(userId) && request.resource.data.role == resource.data.role) || isAdmin());
       allow delete: if isAdmin();
     }
 
@@ -121,14 +119,16 @@ service cloud.firestore {
     match /assessments/{assessmentId} {
       allow read: if isAuthenticated() && (request.auth.uid == resource.data.userId || isAdmin());
       allow create: if isAuthenticated() && 
-                    isValidAssessment(request.resource.data) && 
-                    request.resource.data.userId == request.auth.uid &&
-                    assessmentId == request.auth.uid;
+                    (isAdmin() || 
+                     (isValidAssessment(request.resource.data) && 
+                      request.resource.data.userId == request.auth.uid &&
+                      assessmentId == request.auth.uid));
       allow update: if isAuthenticated() && 
-                    isValidAssessment(request.resource.data) && 
-                    request.resource.data.userId == resource.data.userId &&
-                    areImmutableFieldsUnchanged(['userId', 'createdAt']) &&
-                    (isOwner(assessmentId) || isAdmin());
+                    (isAdmin() || 
+                     (isValidAssessment(request.resource.data) && 
+                      request.resource.data.userId == resource.data.userId &&
+                      areImmutableFieldsUnchanged(['userId', 'createdAt']) &&
+                      isOwner(assessmentId)));
       allow delete: if isAdmin() || isOwner(assessmentId);
     }
   }

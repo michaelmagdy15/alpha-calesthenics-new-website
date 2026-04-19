@@ -17,18 +17,11 @@ export default function AdminRoute({ children }: { children: React.ReactNode }) 
         return;
       }
       
-      // Override for Coach Akram's primary email 
-      if (user.email === 'akramahmedh2022@gmail.com') {
-        if (isMounted) setIsAdmin(true);
-        return;
-      }
-
       try {
-        const userDoc = await getDoc(doc(db, 'users', user.uid));
-        if (userDoc.exists() && userDoc.data().role === 'admin') {
-          if (isMounted) setIsAdmin(true);
-        } else {
-          if (isMounted) setIsAdmin(false);
+        // Force refresh the token to get the latest custom claims
+        const tokenResult = await user.getIdTokenResult(true);
+        if (isMounted) {
+          setIsAdmin(tokenResult.claims.admin === true);
         }
       } catch (error) {
         console.error("Error checking admin status:", error);

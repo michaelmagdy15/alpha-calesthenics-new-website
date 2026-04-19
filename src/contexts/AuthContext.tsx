@@ -6,6 +6,7 @@ import { doc, getDoc, setDoc } from 'firebase/firestore';
 interface AuthContextType {
   user: User | null;
   loading: boolean;
+  isAdmin: boolean;
   signInWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -15,12 +16,22 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
       
       if (currentUser) {
+        // Fetch custom claims to check if user is admin
+        try {
+          const idTokenResult = await currentUser.getIdTokenResult();
+          setIsAdmin(!!idTokenResult.claims.admin);
+        } catch (error) {
+          console.error("Error fetching token claims:", error);
+          setIsAdmin(false);
+        }
+
         // Check if user exists in Firestore, if not create them
         const userRef = doc(db, 'users', currentUser.uid);
         const userSnap = await getDoc(userRef);
@@ -69,7 +80,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, signInWithGoogle, logout }}>
+    <AuthContext.Provider value={{ user, loading, isAdmin, signInWithGoogle, logout }}>
       {!loading && children}
     </AuthContext.Provider>
   );

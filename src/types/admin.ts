@@ -10,11 +10,14 @@ export interface AssessmentData {
   age: number;
   height: string;
   weight: string;
-  fitnessGoals: string;
+  primaryGoal: string;
+  fitnessGoals?: string;
   maxPullups: number;
   maxPushups: number;
-  mobilityLimitations: string;
+  mobilityLimitations?: string;
   injuryHistory: string;
+  formVideoUrl?: string;
+  trainingHistory?: string;
 }
 
 export interface ProgramDeliverables {

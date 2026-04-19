@@ -5,11 +5,22 @@ import fs from 'fs';
 
 export const uploadAssessmentVideo = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { userId, videoType } = req.body;
+    const { videoType } = req.body;
+    const userId = req.user?.uid;
     const file = req.file;
 
-    if (!userId || !videoType || !file) {
-      res.status(400).json({ error: 'Missing userId, videoType, or file' });
+    if (!userId) {
+      res.status(401).json({ error: 'Unauthorized: User ID not found' });
+      return;
+    }
+
+    if (!videoType) {
+      res.status(400).json({ error: 'Missing videoType' });
+      return;
+    }
+
+    if (!file) {
+      res.status(400).json({ error: 'No video file uploaded' });
       return;
     }
 

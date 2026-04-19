@@ -21,3 +21,5 @@
   # Note: Variables set here are visible in the repository.
   # Use the Netlify UI for sensitive secrets.
   VITE_APP_ENV = "production"
+  # Replace with your actual Render service URL (e.g., https://alpha-backend.onrender.com)
+  VITE_BACKEND_URL = "https://alpha-calisthenics-backend.onrender.com"

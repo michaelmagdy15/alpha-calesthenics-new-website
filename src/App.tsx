@@ -12,6 +12,7 @@ import AdminDashboard from './components/admin/AdminDashboard';
 import ClientProfile from './components/admin/ClientProfile';
 import AdminRoute from './components/admin/AdminRoute';
 import Checkout from './components/Checkout';
+import PaymentSuccess from './components/PaymentSuccess';
 import Onboarding from './components/Onboarding';
 import { AuthProvider } from './contexts/AuthContext';
 import { LanguageProvider } from './contexts/LanguageContext';
@@ -44,6 +45,7 @@ function AppContent() {
               <Route path="/" element={<LandingPage />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/checkout" element={<Checkout />} />
+              <Route path="/payment/success" element={<PaymentSuccess />} />
               <Route path="/onboarding" element={<Onboarding />} />
               <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
               <Route path="/admin/client/:id" element={<AdminRoute><ClientProfile /></AdminRoute>} />
