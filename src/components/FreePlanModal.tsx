@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../firebase';
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, setDoc } from 'firebase/firestore';
 import { X, Phone, User, Globe, Download, CheckCircle } from 'lucide-react';
 
 interface FreePlanModalProps {
@@ -33,13 +33,13 @@ export default function FreePlanModal({ isOpen, onClose }: FreePlanModalProps) {
     try {
       // 1. Update Firebase
       const userRef = doc(db, 'users', user.uid);
-      await updateDoc(userRef, {
+      await setDoc(userRef, {
         fullName: formData.fullName,
         whatsapp: formData.whatsapp,
         country: formData.country,
         hasFreePlanAccess: true,
         updatedAt: new Date().toISOString()
-      });
+      }, { merge: true });
 
       // 2. Submit to Google Sheets
       const GOOGLE_SHEETS_URL = "https://script.google.com/macros/s/AKfycbwFPmUuUEYXFvQ3QApxqOhqtaH4Ou62HjAZpQvvTgCFDZkSX02Wp-1LuWp3VIyowN4/exec";
