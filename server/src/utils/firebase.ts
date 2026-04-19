@@ -26,10 +26,16 @@ try {
   if (credential) {
     admin.initializeApp({ credential });
     console.log('Firebase Admin initialized successfully.');
+  } else {
+    console.warn("No Firebase credentials found! Falling back to project ID from environment or placeholder.");
+    admin.initializeApp({
+      projectId: process.env.FIREBASE_PROJECT_ID || 'alpha-calesthenics'
+    });
   }
 } catch (error) {
   console.log('Firebase Admin initialization failed. Error:', error);
 }
+
 
 export const db = admin.firestore();
 export const auth = admin.auth();

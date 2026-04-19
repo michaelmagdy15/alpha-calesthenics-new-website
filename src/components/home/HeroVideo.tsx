@@ -80,7 +80,7 @@ export default function HeroVideo({
           <span className="inline-block px-4 py-1.5 bg-white/5 border border-white/10 rounded-full text-xs font-bold tracking-[0.2em] text-primary uppercase mb-6">
             Meet Your Coach
           </span>
-          <h2 className="text-4xl md:text-7xl font-black font-headline tracking-tighter leading-[0.9] mb-8 uppercase text-gradient-premium">
+          <h2 className="text-4xl md:text-7xl font-black font-headline tracking-tighter leading-[0.9] mb-8 uppercase text-white">
             {title}
           </h2>
           <p className="text-lg md:text-xl text-on-surface-variant font-light max-w-2xl mx-auto">

@@ -5,10 +5,10 @@ import { motion } from 'motion/react';
 import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import Breadcrumbs from './Breadcrumbs';
-import { FileWarning, ChevronRight, Activity, Zap, Play } from 'lucide-react';
+import { FileWarning, ChevronRight, Activity, Zap, Play, Download } from 'lucide-react';
 
 export default function Dashboard() {
-  const { user, logout } = useAuth();
+  const { user, logout, isAdmin } = useAuth();
   const navigate = useNavigate();
   const [stats, setStats] = useState({ pullupsToday: 0, completedWorkouts: 0 });
   const [assessment, setAssessment] = useState<any>(null);
@@ -104,6 +104,27 @@ export default function Dashboard() {
           <h1 className="text-4xl md:text-5xl font-black font-headline mb-4">Dashboard</h1>
           <p className="text-on-surface-variant text-lg">Track your progress and access your programs.</p>
         </motion.div>
+
+        {userData?.hasFreePlanAccess && !isClient && (
+          <div className="mb-12 p-6 glass-card rounded-2xl border border-emerald-500/20 bg-emerald-500/5 flex flex-col sm:flex-row gap-6 items-center justify-between">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-xl bg-emerald-500/20 flex items-center justify-center shrink-0">
+                <Download className="w-6 h-6 text-emerald-500" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold uppercase tracking-tight text-white mb-1">Alpha Free Program</h2>
+                <p className="text-on-surface-variant text-sm">Your foundation program is ready for download. Start building your base.</p>
+              </div>
+            </div>
+            <a 
+              href="/FREE PLAN/FREE PLAN BY C.AKRAM.pdf" 
+              download 
+              className="px-6 py-3 shrink-0 bg-emerald-600 text-white font-bold uppercase tracking-widest rounded-xl hover:bg-emerald-500 active:scale-95 transition-all flex items-center gap-2"
+            >
+              Download PDF <Download className="w-4 h-4" />
+            </a>
+          </div>
+        )}
 
         {!isClient && (
           <div className="mb-12 p-6 glass-card rounded-2xl border border-primary/20 bg-primary/5 flex flex-col sm:flex-row gap-6 items-center justify-between">

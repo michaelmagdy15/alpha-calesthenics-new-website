@@ -9,7 +9,8 @@ const app = express();
 const allowedOrigins = [
   'https://alpha-calisthenics.netlify.app',
   process.env.ALLOWED_ORIGIN,
-  'http://localhost:5173'
+  'http://localhost:5173',
+  'http://localhost:3000'
 ].filter(Boolean) as string[];
 
 app.use(cors({ 

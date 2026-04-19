@@ -32,7 +32,8 @@ export default function Checkout() {
       const token = await user.getIdToken();
       const amountValue = tierId === 'alpha-elite' ? 7999 : 4500;
 
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/payment/initiate`, {
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:4000';
+      const response = await fetch(`${apiUrl}/api/payment/initiate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -60,7 +61,44 @@ export default function Checkout() {
     }
   };
 
+  const handleMockPayment = async () => {
+    if (!user) return;
+    setIsProcessing(true);
+
+    try {
+      const token = await user.getIdToken();
+      const amountValue = tierId === 'alpha-elite' ? 7999 : 4500;
+
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:4000';
+      const response = await fetch(`${apiUrl}/api/payment/initiate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          packageTier: tierName,
+          amount: amountValue,
+          isMock: true
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to initiate mock payment');
+      }
+
+      const { redirectUrl } = await response.json();
+      navigate(redirectUrl);
+
+    } catch (error) {
+      console.error("Error initiating mock payment:", error);
+      setIsProcessing(false);
+      alert("Mock payment failed. Make sure the server is running on port 4000.");
+    }
+  };
+
   if (!user) return null;
+
 
   return (
     <div className="bg-background text-on-surface font-body min-h-screen pt-32 px-6 flex items-center justify-center">
@@ -132,8 +170,20 @@ export default function Checkout() {
                   </>
                 )}
               </button>
+
+              {import.meta.env.DEV && (
+                <button 
+                  onClick={handleMockPayment}
+                  disabled={isProcessing}
+                  className="w-full mt-4 py-3 rounded-xl font-bold uppercase tracking-widest bg-white/5 border border-white/10 text-on-surface-variant hover:bg-white/10 transition-all flex items-center justify-center gap-2"
+                >
+                  <ShieldCheck className="w-4 h-4" />
+                  Mock Payment (Dev Only)
+                </button>
+              )}
             </>
           )}
+
         </div>
       </motion.div>
     </div>

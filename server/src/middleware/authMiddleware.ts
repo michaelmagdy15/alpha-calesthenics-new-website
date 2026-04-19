@@ -13,7 +13,7 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
     const token = authHeader.split('Bearer ')[1];
     const decodedToken = await auth.verifyIdToken(token);
 
-    req.user = decodedToken;
+    req.user = decodedToken as any;
     next();
   } catch (error) {
     console.error('Auth Middleware Error:', error);
@@ -22,7 +22,8 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
 };
 
 export const adminMiddleware = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-  if (!req.user || !req.user.admin) {
+  const user = req.user;
+  if (!user || !user.admin) {
     res.status(403).json({ error: 'Forbidden: Admin access required' });
     return;
   }

@@ -76,7 +76,7 @@ export default function PricingTier({
                 <h3 className="text-2xl font-black font-headline mb-2">{language === 'ar' && tier.nameAr ? tier.nameAr : tier.name}</h3>
                 <p className="text-on-surface-variant text-sm mb-6 min-h-[2.5rem]">{language === 'ar' && tier.descriptionAr ? tier.descriptionAr : tier.description}</p>
                 <div className="flex items-end justify-center gap-1.5" dir="ltr">
-                  <span className="text-4xl md:text-6xl font-black tracking-tighter text-gradient-premium">{tier.price}</span>
+                  <span className="text-4xl md:text-6xl font-black tracking-tighter text-white">{tier.price}</span>
                   {tier.billingPeriod && <span className="text-on-surface-variant mb-2 text-sm font-medium opacity-60">/{language === 'ar' && tier.billingPeriodAr ? tier.billingPeriodAr : tier.billingPeriod}</span>}
                 </div>
               </div>

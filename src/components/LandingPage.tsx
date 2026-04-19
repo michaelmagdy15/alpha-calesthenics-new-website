@@ -9,6 +9,8 @@ import GoogleSignInButton from './auth/GoogleSignInButton';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
 import { HeroVideo, AboutCoach, PricingTier, FAQ, TransformationsGallery, Contact, TransformationsSlideshow } from './home';
+import FreePlanModal from './FreePlanModal';
+import { getDoc, doc } from 'firebase/firestore';
 
 const coachProfile = {
   name: "Coach Akram",
@@ -39,11 +41,32 @@ const transformationsData = [
 
 const COACHING_TIERS = [
   {
+    id: 'alpha-free',
+    name: 'Alpha Free',
+    price: 'FREE',
+    billingPeriod: 'Forever',
+    description: 'Perfect for beginners to start their journey with no financial commitment.',
+    descriptionAr: 'مثالي للمبتدئين لبدء رحلتهم بدون أي التزام مالي.',
+    features: [
+      { text: '4-Week Foundation Program', textAr: 'برنامج تأسيسي لمدة ٤ أسابيع', included: true },
+      { text: 'Basic HD Exercise Library', textAr: 'مكتبة تمارين أساسية عالية الجودة', included: true },
+      { text: 'Access to Global Community', textAr: 'الوصول إلى المجتمع العالمي للرياضيين', included: true },
+      { text: 'Weekly Nutrition Tips', textAr: 'نصائح تغذية أسبوعية', included: true },
+      { text: 'Custom 1-on-1 Programming', textAr: 'تصميم برنامج مخصص لك', included: false },
+      { text: 'Direct Coaching Support', textAr: 'دعم مباشر من المدرب', included: false },
+      { text: 'Full App Features', textAr: 'جميع مميزات التطبيق', included: false }
+    ],
+    isPopular: false,
+    ctaText: 'Get Free Access',
+    ctaTextAr: 'احصل على وصول مجاني'
+  },
+  {
     id: 'alpha-athlete',
     name: 'Alpha Athlete',
     price: '4,500 EGP',
     billingPeriod: '3 Months',
     description: 'Perfect for the driven individual who needs a world-class plan and focused support. (Original: 7,000 EGP)',
+    descriptionAr: 'مثالي للفرد الطموح الذي يحتاج إلى خطة عالمية ودعم مركز. (الأصل: ٧,٠٠٠ ج.م)',
     features: [
       { text: 'Initial Strength & Mobility Assessment', textAr: 'تحديد مستوي في القوة والمرونه وتحديد هدفك', included: true },
       { text: 'Custom 100% Training Program (Supervised by Akram)', textAr: 'تصميم برنامج تمرين مخصص (تحت اشراف كابتن أكرم)', included: true },
@@ -65,6 +88,7 @@ const COACHING_TIERS = [
     price: '7,999 EGP',
     billingPeriod: '3 Months',
     description: 'Premium world-class coaching directly with Akram for elite results. (Original: 10,000 EGP)',
+    descriptionAr: 'تدريب متميز على مستوى عالمي مباشرة مع أكرم لتحقيق نتائج نخبوية. (الأصل: ١٠,٠٠٠ ج.م)',
     features: [
       { text: 'Initial Strength & Mobility Assessment', textAr: 'تحديد مستوي في القوة والمرونه وتحديد هدفك', included: true },
       { text: 'Premium Custom Training Program', textAr: 'تصميم برنامج تمرين مخصص ليك ولهدفك', included: true },
@@ -137,6 +161,7 @@ export default function LandingPage() {
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
+  const [isFreePlanModalOpen, setIsFreePlanModalOpen] = useState(false);
   const { user, signInWithGoogle } = useAuth();
   const navigate = useNavigate();
   const { language } = useLanguage();
@@ -184,17 +209,27 @@ export default function LandingPage() {
             <LanguageToggle />
             <img alt="Alpha Calisthenics Logo" className="h-5 object-contain" src="/Alphalogowhite.png" />
             <div className="hidden sm:block h-6 w-px bg-white/10 mx-2"></div>
-            <span className="hidden sm:block text-[10px] font-black uppercase tracking-[0.3em] text-on-surface-variant">Est. MMVI</span>
+            <span className="hidden sm:block text-[10px] font-black uppercase tracking-[0.3em] text-on-surface-variant">
+              {language === 'ar' ? 'تأسس ٢٠١٣' : 'EST. 2013'}
+            </span>
           </div>
           
           <div className="hidden md:flex items-center gap-10">
-            <a className="text-sm font-bold tracking-tight hover:text-primary transition-colors" href="#about">About</a>
-            <a className="text-sm font-bold tracking-tight hover:text-primary transition-colors" href="#packages">Coaching</a>
-            <a className="text-sm font-bold tracking-tight hover:text-primary transition-colors" href="#faq">FAQ</a>
-            <a className="text-sm font-bold tracking-tight hover:text-primary transition-colors" href="#contact">Contact</a>
+            <a className="text-sm font-bold tracking-tight hover:text-primary transition-colors" href="#about">
+              {language === 'ar' ? 'عني' : 'About'}
+            </a>
+            <a className="text-sm font-bold tracking-tight hover:text-primary transition-colors" href="#packages">
+              {language === 'ar' ? 'التدريب' : 'Coaching'}
+            </a>
+            <a className="text-sm font-bold tracking-tight hover:text-primary transition-colors" href="#faq">
+              {language === 'ar' ? 'الأسئلة الشائعة' : 'FAQ'}
+            </a>
+            <a className="text-sm font-bold tracking-tight hover:text-primary transition-colors" href="#contact">
+              {language === 'ar' ? 'تواصل معي' : 'Contact'}
+            </a>
             {user ? (
               <button onClick={() => navigate('/dashboard')} className="bg-primary-container text-on-primary-container px-6 py-2.5 rounded-lg border border-primary/20 font-black uppercase text-[10px] tracking-widest hover:shadow-[0_0_20px_rgba(255,255,255,0.15)] transition-all">
-                Dashboard
+                {language === 'ar' ? 'لوحة التحكم' : 'Dashboard'}
               </button>
             ) : (
               <GoogleSignInButton onClick={signInWithGoogle} />
@@ -218,14 +253,22 @@ export default function LandingPage() {
             className="fixed top-[73px] left-0 w-full bg-background/95 backdrop-blur-xl border-b border-white/10 z-40 md:hidden overflow-hidden"
           >
             <div className="flex flex-col px-6 py-8 gap-6">
-              <a className="text-primary font-bold text-lg" href="#about" onClick={() => setIsMobileMenuOpen(false)}>About</a>
-              <a className="text-on-surface-variant font-bold text-lg" href="#packages" onClick={() => setIsMobileMenuOpen(false)}>Coaching</a>
-              <a className="text-on-surface-variant font-bold text-lg" href="#faq" onClick={() => setIsMobileMenuOpen(false)}>FAQ</a>
-              <a className="text-on-surface-variant font-bold text-lg" href="#contact" onClick={() => setIsMobileMenuOpen(false)}>Contact</a>
+              <a className="text-primary font-bold text-lg" href="#about" onClick={() => setIsMobileMenuOpen(false)}>
+                {language === 'ar' ? 'عني' : 'About'}
+              </a>
+              <a className="text-on-surface-variant font-bold text-lg" href="#packages" onClick={() => setIsMobileMenuOpen(false)}>
+                {language === 'ar' ? 'التدريب' : 'Coaching'}
+              </a>
+              <a className="text-on-surface-variant font-bold text-lg" href="#faq" onClick={() => setIsMobileMenuOpen(false)}>
+                {language === 'ar' ? 'الأسئلة الشائعة' : 'FAQ'}
+              </a>
+              <a className="text-on-surface-variant font-bold text-lg" href="#contact" onClick={() => setIsMobileMenuOpen(false)}>
+                {language === 'ar' ? 'تواصل معي' : 'Contact'}
+              </a>
               <div className="h-px w-full bg-white/10 my-2"></div>
               {user ? (
                 <button className="bg-primary-container text-on-primary-container px-5 py-4 rounded-xl font-black uppercase tracking-wider w-full mt-2" onClick={() => { setIsMobileMenuOpen(false); navigate('/dashboard'); }}>
-                  Dashboard
+                  {language === 'ar' ? 'لوحة التحكم' : 'Dashboard'}
                 </button>
               ) : (
                 <div className="mt-2">
@@ -267,21 +310,41 @@ export default function LandingPage() {
               </div>
             </div>
             <div className="md:w-1/2">
-              <span className="text-on-surface font-black text-xs uppercase tracking-[0.3em] mb-4 block">The Mission</span>
-              <h2 className="text-4xl md:text-6xl font-black font-headline mb-6 leading-tight uppercase">About Coach Akram</h2>
+              <span className="text-on-surface font-black text-xs uppercase tracking-[0.3em] mb-4 block">
+                {language === 'ar' ? 'المهمة' : 'The Mission'}
+              </span>
+              <h2 className="text-4xl md:text-6xl font-black font-headline mb-6 leading-tight uppercase">
+                {language === 'ar' ? 'عن كابتن أكرم' : 'About Coach Akram'}
+              </h2>
               <div className="space-y-6 text-on-surface-variant text-lg font-light leading-relaxed">
-                <p>I don’t just hand you a generic template and hope for the best. <span className="text-white font-bold text-xl uppercase">I build athletes.</span></p>
-                <p>With years of in-the-trenches experience mastering bodyweight mechanics, strength development, and physical transformation, I know exactly what it takes to break through plateaus and build a physique that performs as incredibly as it looks.</p>
-                <p className="border-l-4 border-white pl-6 py-4 bg-white/5 italic text-white/90" dir="ltr">"My philosophy is simple: Zero guesswork. 100% custom programming. Every rep, every set, and every macro is calculated specifically for you."</p>
-                <p>I am fully committed to your progression because your results are my reputation. If you are ready to put in the work, I am ready to show you exactly how far you can go.</p>
+                <p>
+                  {language === 'ar' 
+                    ? <><span className="text-white font-bold text-xl uppercase">أنا لا أعطيك مجرد نموذج عام وأتمنى الأفضل.</span> أنا أبني رياضيين.</>
+                    : <>I don’t just hand you a generic template and hope for the best. <span className="text-white font-bold text-xl uppercase">I build athletes.</span></>}
+                </p>
+                <p>
+                  {language === 'ar'
+                    ? 'مع سنوات من الخبرة الميدانية في إتقان ميكانيكا وزن الجسم، وتطوير القوة، والتحول البدني، أعرف تماماً ما يتطلبه الأمر لكسر الحواجز وبناء جسم يؤدي بنفس الروعة التي يظهر بها.'
+                    : 'With years of in-the-trenches experience mastering bodyweight mechanics, strength development, and physical transformation, I know exactly what it takes to break through plateaus and build a physique that performs as incredibly as it looks.'}
+                </p>
+                <p className="border-l-4 border-white pl-6 py-4 bg-white/5 italic text-white/90" dir="ltr">
+                  {language === 'ar'
+                    ? '"فلسفتي بسيطة: لا مكان للتخمين. برمجة مخصصة بنسبة ١٠٠٪. كل تكرار، كل مجموعة، وكل عنصر غذائي محسوب خصيصاً لك."'
+                    : '"My philosophy is simple: Zero guesswork. 100% custom programming. Every rep, every set, and every macro is calculated specifically for you."'}
+                </p>
+                <p>
+                  {language === 'ar'
+                    ? 'أنا ملتزم تماماً بتقدمك لأن نتائجك هي سمعتي. إذا كنت مستعداً لبذل الجهد، فأنا مستعد لأوضح لك المدى الذي يمكنك الوصول إليه.'
+                    : 'I am fully committed to your progression because your results are my reputation. If you are ready to put in the work, I am ready to show you exactly how far you can go.'}
+                </p>
               </div>
               {user ? (
                 <button onClick={() => navigate('/dashboard')} className="mt-10 px-8 py-4 bg-primary/20 border border-primary/30 text-white font-bold rounded-xl hover:bg-primary/30 transition-all uppercase tracking-widest text-xs">
-                  Review Program
+                  {language === 'ar' ? 'مراجعة البرنامج' : 'Review Program'}
                 </button>
               ) : (
                 <button onClick={signInWithGoogle} className="mt-10 px-8 py-4 bg-white/5 border border-white/10 text-white font-bold rounded-xl hover:bg-white/10 transition-all uppercase tracking-widest text-xs">
-                  Let's Work
+                  {language === 'ar' ? 'لنبدأ العمل' : "Let's Work"}
                 </button>
               )}
             </div>
@@ -293,6 +356,24 @@ export default function LandingPage() {
             tiers={COACHING_TIERS.map(tier => ({
               ...tier,
               onCtaClick: async () => {
+                if (tier.id === 'alpha-free') {
+                  if (user) {
+                    // Check if user already has details
+                    const userRef = doc(db, 'users', user.uid);
+                    const userSnap = await getDoc(userRef);
+                    if (userSnap.exists() && userSnap.data().whatsapp && userSnap.data().country) {
+                      // Already has access, just open the modal to show download button
+                      setIsFreePlanModalOpen(true);
+                    } else {
+                      setIsFreePlanModalOpen(true);
+                    }
+                  } else {
+                    await signInWithGoogle();
+                    setIsFreePlanModalOpen(true);
+                  }
+                  return;
+                }
+                
                 if (user) {
                   navigate(`/checkout?tier=${tier.id}`);
                 } else {
@@ -307,11 +388,21 @@ export default function LandingPage() {
           />
         </div>
 
+        <FreePlanModal isOpen={isFreePlanModalOpen} onClose={() => setIsFreePlanModalOpen(false)} />
+
         <section id="next-steps" className="py-24 px-6 bg-surface-container">
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-16">
-              <h2 className="text-4xl md:text-5xl font-black font-headline mb-4 uppercase tracking-tight">The Onboarding Flow</h2>
-              <p className="text-on-surface-variant uppercase text-xs tracking-[0.2em]">Three steps to starting your <span className="text-white">transformation</span>.</p>
+              <h2 className="text-4xl md:text-5xl font-black font-headline mb-4 uppercase tracking-tight">
+                {language === 'ar' ? 'خطوات الانضمام' : 'The Onboarding Flow'}
+              </h2>
+              <p className="text-on-surface-variant uppercase text-xs tracking-[0.2em]">
+                {language === 'ar' ? (
+                  <>ثلاث خطوات لبدء <span className="text-white">تحولك الجسدي</span>.</>
+                ) : (
+                  <>Three steps to starting your <span className="text-white">transformation</span>.</>
+                )}
+              </p>
             </div>
             <motion.div 
               variants={containerVariants}
@@ -321,9 +412,27 @@ export default function LandingPage() {
               className="grid grid-cols-1 md:grid-cols-3 gap-12"
             >
               {[
-                { step: "01", title: "Initial Audit", desc: "Upon joining, you'll complete an intensive physical and nutritional audit. We identify your starting point and clear objectives." },
-                { step: "02", title: "System Build", desc: "Coach Akram personally builds your custom training blocks and macro-strategy. Tailored to your biology." },
-                { step: "03", title: "App Activation", desc: "Receive your private coaching app login. Your custom protocol, macros, and tracking tools will be synced and ready." }
+                { 
+                  step: "01", 
+                  title: language === 'ar' ? 'التقييم الأولي' : 'Initial Audit', 
+                  desc: language === 'ar' 
+                    ? 'بمجرد انضمامك، ستكمل تقييماً بدنياً وغذائياً مكثفاً. نحدد نقطة بدايتك وأهدافك الواضحة.' 
+                    : 'Upon joining, you\'ll complete an intensive physical and nutritional audit. We identify your starting point and clear objectives.' 
+                },
+                { 
+                  step: "02", 
+                  title: language === 'ar' ? 'بناء النظام' : 'System Build', 
+                  desc: language === 'ar' 
+                    ? 'يقوم كابتن أكرم شخصياً ببناء كتل التدريب المخصصة لك واستراتيجية المغذيات الكبرى. مصمم خصيصاً لجسمك.' 
+                    : 'Coach Akram personally builds your custom training blocks and macro-strategy. Tailored to your biology.' 
+                },
+                { 
+                  step: "03", 
+                  title: language === 'ar' ? 'تفعيل التطبيق' : 'App Activation', 
+                  desc: language === 'ar' 
+                    ? 'احصل على بيانات تسجيل الدخول لتطبيق التدريب الخاص بك. سيتم مزامنة بروتوكولك الخاص والمغذيات وأدوات التتبع لتكون جاهزة.' 
+                    : 'Receive your private coaching app login. Your custom protocol, macros, and tracking tools will be synced and ready.' 
+                }
               ].map((s, i) => (
                 <motion.div 
                   key={i} 
@@ -344,8 +453,12 @@ export default function LandingPage() {
 
         <section id="faq" className="py-24 px-6 max-w-4xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-6xl font-black font-headline mb-4 uppercase tracking-tighter">Common Questions</h2>
-            <p className="text-on-surface-variant uppercase text-xs tracking-[0.2em]">Everything you need to know before we start.</p>
+            <h2 className="text-4xl md:text-6xl font-black font-headline mb-4 uppercase tracking-tighter">
+              {language === 'ar' ? 'الأسئلة الشائعة' : 'Common Questions'}
+            </h2>
+            <p className="text-on-surface-variant uppercase text-xs tracking-[0.2em]">
+              {language === 'ar' ? 'كل ما تحتاج لمعرفته قبل أن نبدأ.' : 'Everything you need to know before we start.'}
+            </p>
           </div>
           <motion.div 
             variants={containerVariants}
@@ -394,17 +507,27 @@ export default function LandingPage() {
         <section id="community" className="py-24 bg-surface-container-lowest">
           <div className="px-6 max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-20">
             <div className="lg:w-1/2">
-              <span className="text-primary font-black text-[10px] uppercase tracking-[0.4em] mb-6 block">The Alpha Tribe</span>
-              <h2 className="text-4xl md:text-6xl font-black font-headline mb-8 leading-tight uppercase tracking-tight">Join a global tribe of driven athletes.</h2>
-              <p className="text-on-surface-variant text-lg mb-12 font-light leading-relaxed">Connect with thousands of members, share your progress, and get expert feedback. The journey is better together.</p>
+              <span className="text-primary font-black text-[10px] uppercase tracking-[0.4em] mb-6 block">
+                {language === 'ar' ? 'قبيلة ألفا' : 'The Alpha Tribe'}
+              </span>
+              <h2 className="text-4xl md:text-6xl font-black font-headline mb-8 leading-tight uppercase tracking-tight">
+                {language === 'ar' ? 'انضم إلى مجتمع عالمي من الرياضيين الطموحين.' : 'Join a global tribe of driven athletes.'}
+              </h2>
+              <p className="text-on-surface-variant text-lg mb-12 font-light leading-relaxed">
+                {language === 'ar' 
+                  ? 'تواصل مع آلاف الأعضاء، شارك تقدمك، واحصل على آراء الخبراء. الرحلة أفضل معاً.' 
+                  : 'Connect with thousands of members, share your progress, and get expert feedback. The journey is better together.'}
+              </p>
               <div className="grid grid-cols-2 gap-12 mb-12">
                 <motion.div 
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                 >
-                  <div className="text-5xl md:text-6xl font-black font-headline text-gradient-premium mb-2 tracking-tighter" dir="ltr">12K+</div>
-                  <div className="text-[10px] text-on-surface-variant uppercase font-black tracking-[0.3em] opacity-60">Active Members</div>
+                  <div className="text-5xl md:text-6xl font-black font-headline text-white mb-2 tracking-tighter" dir="ltr">12K+</div>
+                  <div className="text-[10px] text-on-surface-variant uppercase font-black tracking-[0.3em] opacity-60">
+                    {language === 'ar' ? 'عضو نشط' : 'Active Members'}
+                  </div>
                 </motion.div>
                 <motion.div 
                   initial={{ opacity: 0, y: 20 }}
@@ -412,14 +535,20 @@ export default function LandingPage() {
                   viewport={{ once: true }}
                   transition={{ delay: 0.1 }}
                 >
-                  <div className="text-5xl md:text-6xl font-black font-headline text-gradient-premium mb-2 tracking-tighter" dir="ltr">890+</div>
-                  <div className="text-[10px] text-on-surface-variant uppercase font-black tracking-[0.3em] opacity-60">Local Groups</div>
+                  <div className="text-5xl md:text-6xl font-black font-headline text-white mb-2 tracking-tighter" dir="ltr">890+</div>
+                  <div className="text-[10px] text-on-surface-variant uppercase font-black tracking-[0.3em] opacity-60">
+                    {language === 'ar' ? 'مجموعة محلية' : 'Local Groups'}
+                  </div>
                 </motion.div>
               </div>
               <div className="space-y-4">
                 <div className="flex items-center gap-5 p-5 glass-card rounded-2xl border-white/5">
                   <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center font-black text-primary text-xs tracking-tighter shadow-lg">JD</div>
-                  <p className="text-sm font-medium italic opacity-90">"Just hit my first muscle-up after 4 weeks of the program! The progressions actually work."</p>
+                  <p className="text-sm font-medium italic opacity-90">
+                    {language === 'ar' 
+                      ? '"لقد حققت أول حركة Muscle-up بعد ٤ أسابيع من البرنامج! التدرجات تعمل حقاً."' 
+                      : '"Just hit my first muscle-up after 4 weeks of the program! The progressions actually work."'}
+                  </p>
                 </div>
               </div>
             </div>
@@ -436,9 +565,15 @@ export default function LandingPage() {
               <div className="absolute -bottom-10 -right-4 p-8 glass-card rounded-2xl max-w-[280px] hidden md:block border-white/20 shadow-2xl">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_10px_#10b981]"></div>
-                  <span className="text-[10px] font-black uppercase tracking-[0.3em] text-emerald-400">Live Community Feed</span>
+                  <span className="text-[10px] font-black uppercase tracking-[0.3em] text-emerald-400">
+                    {language === 'ar' ? 'بث مباشر للمجتمع' : 'Live Community Feed'}
+                  </span>
                 </div>
-                <p className="text-xs leading-relaxed font-light italic">Join the Alpha Live Session starting in <span className="text-white font-bold">14:02</span>. 420 athletes already in.</p>
+                <p className="text-xs leading-relaxed font-light italic">
+                  {language === 'ar' 
+                    ? <>انضم إلى جلسة ألفا المباشرة التي تبدأ خلال <span className="text-white font-bold">١٤:٠٢</span>. ٤٢٠ رياضياً انضموا بالفعل.</>
+                    : <>Join the Alpha Live Session starting in <span className="text-white font-bold">14:02</span>. 420 athletes already in.</>}
+                </p>
               </div>
             </div>
           </div>
@@ -447,25 +582,37 @@ export default function LandingPage() {
         <section className="py-40 px-6 text-center bg-background relative overflow-hidden">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/10 rounded-full blur-[150px] pointer-events-none opacity-50"></div>
           <div className="relative z-10 max-w-4xl mx-auto">
-            <h2 className="text-5xl md:text-8xl font-black font-headline mb-10 leading-[0.9] uppercase tracking-tighter">Ready to rewrite your<br/><span className="gradient-text">potential?</span></h2>
-            <p className="text-on-surface-variant text-xl mb-16 max-w-2xl mx-auto font-light tracking-wide">Get unlimited access to all coaching plans, nutrition blocks, and our exclusive athlete community today.</p>
+            <h2 className="text-5xl md:text-8xl font-black font-headline mb-10 leading-[0.9] uppercase tracking-tighter text-white">
+              {language === 'ar' ? (
+                <>هل أنت مستعد لإعادة كتابة<br/>قدراتك؟</>
+              ) : (
+                <>Ready to rewrite your<br/>potential?</>
+              )}
+            </h2>
+            <p className="text-on-surface-variant text-xl mb-16 max-w-2xl mx-auto font-light tracking-wide">
+              {language === 'ar' 
+                ? 'احصل على وصول غير محدود لجميع خطط التدريب، وحدات التغذية، ومجتمع الرياضيين الحصري اليوم.' 
+                : 'Get unlimited access to all coaching plans, nutrition blocks, and our exclusive athlete community today.'}
+            </p>
             <div className="flex flex-col sm:flex-row gap-6 justify-center items-center w-full">
               {user ? (
                 <button onClick={() => navigate('/dashboard')} className="w-full sm:w-auto px-12 py-6 bg-primary-container text-on-primary-container font-black text-xl rounded-xl hover:scale-110 transition-all shadow-[0_0_60px_rgba(255,255,255,0.15)] uppercase tracking-[0.2em]">
-                  Go to Dashboard
+                  {language === 'ar' ? 'الذهاب إلى لوحة التحكم' : 'Go to Dashboard'}
                 </button>
               ) : (
                 <GoogleSignInButton 
                   onClick={signInWithGoogle} 
-                  text="Start Your Transformation"
+                  text={language === 'ar' ? 'ابدأ تحولك الجسدي الآن' : 'Start Your Transformation'}
                   className="w-full sm:w-auto px-12 py-8 text-xl font-headline tracking-tight uppercase"
                 />
               )}
               <a href="#packages" className="w-full sm:w-auto px-12 py-6 border border-white/20 text-white font-black text-xl rounded-xl hover:bg-white/10 transition-all inline-block text-center uppercase tracking-[0.2em]">
-                View Packages
+                {language === 'ar' ? 'عرض الباقات' : 'View Packages'}
               </a>
             </div>
-            <p className="mt-12 text-[10px] font-black uppercase tracking-[0.4em] text-on-surface-variant/40">No long-term commitment. Cancel anytime.</p>
+            <p className="mt-12 text-[10px] font-black uppercase tracking-[0.4em] text-on-surface-variant/40">
+              {language === 'ar' ? 'لا يوجد التزام طويل الأمد. يمكنك الإلغاء في أي وقت.' : 'No long-term commitment. Cancel anytime.'}
+            </p>
           </div>
         </section>
 
@@ -477,13 +624,21 @@ export default function LandingPage() {
           <div className="flex flex-col md:flex-row justify-between items-center gap-12 mb-12">
             <img alt="Alpha Logo" className="h-6 object-contain opacity-30" src="/Alphalogowhite.png" />
             <div className="flex flex-col sm:flex-row items-center gap-8 sm:gap-14 font-black">
-              <a className="hover:text-primary transition-colors" href="#">Privacy Policy</a>
-              <a className="hover:text-primary transition-colors" href="#">Terms of Service</a>
-              <a className="hover:text-primary transition-colors" href="#contact">Contact Support</a>
+              <a className="hover:text-primary transition-colors" href="#">
+                {language === 'ar' ? 'سياسة الخصوصية' : 'Privacy Policy'}
+              </a>
+              <a className="hover:text-primary transition-colors" href="#">
+                {language === 'ar' ? 'شروط الخدمة' : 'Terms of Service'}
+              </a>
+              <a className="hover:text-primary transition-colors" href="#contact">
+                {language === 'ar' ? 'الدعم الفني' : 'Contact Support'}
+              </a>
             </div>
           </div>
           <div className="text-center md:text-left font-bold opacity-20">
-            © 2026 Alpha Fitness. All rights reserved. Built by Michael Mitry.
+            {language === 'ar' 
+              ? '© ٢٠٢٦ ألفا فيتنس. جميع الحقوق محفوظة. صُمم بواسطة مايكل متري.' 
+              : '© 2026 Alpha Fitness. All rights reserved. Built by Michael Mitry.'}
           </div>
         </div>
       </footer>

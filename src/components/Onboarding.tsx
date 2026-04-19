@@ -375,7 +375,7 @@ export default function Onboarding() {
       <div className="w-24 h-24 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-6">
         <Flag className="w-12 h-12 text-primary" />
       </div>
-      <h2 className="text-3xl font-black uppercase tracking-tight mb-4 text-gradient-premium">Audit Received</h2>
+      <h2 className="text-3xl font-black uppercase tracking-tight mb-4 text-white">Audit Received</h2>
       <p className="text-on-surface-variant leading-relaxed max-w-sm mx-auto">
         Coach Akram will review your data and assign your custom protocol soon.
         <br/><br/>

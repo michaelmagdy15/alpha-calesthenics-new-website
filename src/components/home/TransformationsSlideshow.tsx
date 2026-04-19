@@ -80,11 +80,11 @@ export default function TransformationsSlideshow({
           <span className="text-primary font-black text-xs uppercase tracking-[0.4em] mb-4 block">
             {language === 'en' ? 'Proven Results' : 'نتائج حقيقية'}
           </span>
-          <h2 className="text-4xl md:text-7xl font-black font-headline mb-6 leading-tight uppercase tracking-tighter">
+          <h2 className="text-4xl md:text-7xl font-black font-headline mb-6 leading-tight uppercase tracking-tighter text-white">
             {language === 'en' ? (
-              <>Witness the <span className="gradient-text">Transformation</span></>
+              <>Witness the Transformation</>
             ) : (
-              <>شاهد <span className="gradient-text">التحول</span></>
+              <>شاهد التحول</>
             )}
           </h2>
           <p className="text-on-surface-variant max-w-2xl mx-auto font-light text-lg">

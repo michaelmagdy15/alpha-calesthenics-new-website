@@ -48,7 +48,7 @@ const verifyHmac = (hmacHeader: string, data: any) => {
 // Route to initiate payment
 router.post('/payment/initiate', authMiddleware, async (req, res) => {
   try {
-    const { packageTier, amount } = req.body;
+    const { packageTier, amount, isMock } = req.body;
     const userId = req.user?.uid;
     const email = req.user?.email || '';
 
@@ -56,7 +56,28 @@ router.post('/payment/initiate', authMiddleware, async (req, res) => {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
+    // Mock Payment Handling for Development
+    if (isMock) {
+      console.log(`[MOCK] Processing mock payment for ${userId} - ${packageTier}`);
+      
+      await db.collection('users').doc(userId).set({
+        role: 'paid_client',
+        packageTier: packageTier,
+        paymentDate: new Date().toISOString(),
+        lastTransactionId: `MOCK_${Date.now()}`,
+        pendingPayment: admin.firestore.FieldValue.delete()
+      }, { merge: true });
+
+      return res.json({ 
+        success: true, 
+        isMock: true, 
+        message: 'Mock payment processed successfully',
+        redirectUrl: '/payment/success'
+      });
+    }
+
     const amountCents = Math.round(amount * 100);
+
 
     // Step 1: Authenticate with Paymob
     const token = await PaymobService.authenticate();
@@ -80,7 +101,7 @@ router.post('/payment/initiate', authMiddleware, async (req, res) => {
     
     const billingData: PaymobBillingData = {
       first_name: req.user?.name?.split(' ')[0] || 'Alpha',
-      last_name: req.user?.name?.split(' ')[1] || 'User',
+      last_name: req.user?.name?.split(' ')[1] || 'Alpha Member',
       email: email,
       phone_number: '01000000000', // Placeholder
       city: 'Cairo',
